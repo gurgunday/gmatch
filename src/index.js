@@ -69,7 +69,7 @@ const Match = class extends Writable {
     let i = 0;
 
     while (i <= bufferLength - patternLength) {
-      let j = patternLength - 1;
+      let j = patternLastIndex;
 
       while (j >= 0 && pattern[j] === buffer[i + j]) {
         j--;
