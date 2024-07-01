@@ -26,7 +26,6 @@ const Match = class extends Writable {
     this.totalBytesProcessed = 0;
     this.buffer = Buffer.alloc(0);
     this.allMatches = [];
-    this.currentMatches = [];
     this.table = this._buildTable(256);
   }
 
