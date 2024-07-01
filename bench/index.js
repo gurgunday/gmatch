@@ -10,7 +10,7 @@ const pattern = "example";
 const longText =
   `This is a long text with multiple occurrences of the word example. ` +
   `It repeats the word example several times to ensure we have enough ${"data for the benchmark. Here's another example.".repeat(
-    1000
+    1000,
   )}`;
 
 let gmatchMatches;
