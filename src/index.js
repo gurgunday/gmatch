@@ -24,33 +24,32 @@ const Match = class extends Writable {
     this.pattern = Buffer.from(pattern);
     this.buffer = Buffer.alloc(0);
     this.table = Match.buildTable(256, this.pattern);
-    this.totalBytesProcessed = 0;
+    this.totalBytes = 0;
   }
 
   static buildTable(size, pattern) {
     const patternLength = pattern.length;
+    const patternLastIndex = patternLength - 1;
     const table = new Uint8Array(size).fill(patternLength);
 
-    for (let i = 0; i < patternLength - 1; ++i) {
-      table[pattern[i]] = patternLength - 1 - i;
+    for (let i = 0; i < patternLastIndex; ++i) {
+      table[pattern[i]] = patternLastIndex - i;
     }
 
     return table;
   }
 
   _write(chunk, encoding, callback) {
-    const patternLength = this.pattern.length;
     this.buffer = Buffer.concat([this.buffer, chunk]);
 
     this._search();
 
-    if (this.buffer.length > patternLength - 1) {
-      const processedLength = this.buffer.length - (patternLength - 1);
-      this.totalBytesProcessed += processedLength;
+    if (this.buffer.length > this.pattern.length - 1) {
+      this.totalBytes += this.buffer.length - (this.pattern.length - 1);
       this.buffer =
-        patternLength === 1
+        this.pattern.length === 1
           ? Buffer.alloc(0)
-          : this.buffer.subarray(-patternLength + 1);
+          : this.buffer.subarray(-this.pattern.length + 1);
     }
 
     callback();
@@ -59,7 +58,7 @@ const Match = class extends Writable {
   _final(callback) {
     this._search();
 
-    this.totalBytesProcessed += this.buffer.length;
+    this.totalBytes += this.buffer.length;
 
     this.buffer = null;
 
@@ -67,22 +66,24 @@ const Match = class extends Writable {
   }
 
   _search() {
-    const patternLength = this.pattern.length;
+    const { table, buffer, pattern, totalBytes } = this;
+    const bufferLength = buffer.length;
+    const patternLength = pattern.length;
     let i = 0;
 
-    while (i <= this.buffer.length - patternLength) {
+    while (i <= bufferLength - patternLength) {
       let j = patternLength - 1;
 
-      while (j >= 0 && this.pattern[j] === this.buffer[i + j]) {
+      while (j >= 0 && pattern[j] === buffer[i + j]) {
         j--;
       }
 
       if (j < 0) {
-        const matchPosition = this.totalBytesProcessed + i;
+        const matchPosition = totalBytes + i;
         this.emit("match", matchPosition);
         i += patternLength;
       } else {
-        i += this.table[this.buffer[patternLength - 1 + i]];
+        i += table[buffer[patternLength - 1 + i]];
       }
     }
   }
