@@ -10,7 +10,7 @@ const pattern = "example";
 const longText =
   `This is a long text with multiple occurrences of the word example. ` +
   `It repeats the word example several times to ensure we have enough ${"data for the benchmark. Here's another example.".repeat(
-    1000,
+    1000
   )}`;
 
 let gmatchMatches;
@@ -35,15 +35,12 @@ bench
   .add("streamsearch", () => {
     return new Promise((resolve) => {
       const matches = [];
-      const search = new StreamSearch(
-        Buffer.from(pattern),
-        (isMatch, data, start) => {
-          if (isMatch) {
-            matches.push(start);
-          }
-        },
-      );
-      search.push(Buffer.from(longText), null);
+      const search = new StreamSearch(pattern, (isMatch, data, start) => {
+        if (isMatch) {
+          matches.push(start);
+        }
+      });
+      search.push(longText);
       streamsearchMatches = matches.length;
       resolve(matches);
     });
