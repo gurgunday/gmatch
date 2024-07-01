@@ -13,6 +13,9 @@ const longText =
     1000,
   )}`;
 
+let gmatchMatches;
+let streamsearchMatches;
+
 bench
   .add("gmatch", async () => {
     return new Promise((resolve) => {
@@ -23,6 +26,7 @@ bench
       });
       search.write(longText, () => {
         search.end(() => {
+          gmatchMatches = matches.length;
           resolve(matches);
         });
       });
@@ -40,6 +44,7 @@ bench
         },
       );
       search.push(Buffer.from(longText), null);
+      streamsearchMatches = matches.length;
       resolve(matches);
     });
   });
@@ -48,5 +53,7 @@ bench
   .run()
   .then(() => {
     console.table(bench.table());
+    console.warn("gmatch matches:", gmatchMatches);
+    console.warn("streamsearch matches:", streamsearchMatches);
   })
   .catch(console.error);
