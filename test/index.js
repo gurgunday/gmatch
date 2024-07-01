@@ -38,6 +38,22 @@ describe("StreamingSearch", () => {
     assert.deepEqual(matches, [10]);
   });
 
+  test("single write with a match (pattern length is 256)", async () => {
+    const search = new StreamingSearch("t".repeat(256));
+    const matches = [];
+    search.on("match", (m) => {
+      return matches.push(m);
+    });
+
+    await new Promise((resolve) => {
+      search.write(`test and ${"t".repeat(256)}`, () => {
+        search.end(resolve);
+      });
+    });
+
+    assert.deepEqual(matches, [9]);
+  });
+
   test("multiple writes with matches", async () => {
     const search = new StreamingSearch("pattern");
     const matches = [];
