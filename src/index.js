@@ -30,7 +30,7 @@ const Match = class extends Writable {
   }
 
   _buildTable(size) {
-    const { patternLength } = this;
+    const { pattern, patternLength } = this;
     const table = new Array(size);
 
     for (let i = 0; i < size; ++i) {
@@ -38,7 +38,7 @@ const Match = class extends Writable {
     }
 
     for (let i = 0; i < patternLength - 1; ++i) {
-      table[this.pattern[i]][this.pattern[i + 1]] = patternLength - i - 1;
+      table[pattern[i]][pattern[i + 1]] = patternLength - i - 1;
     }
 
     return table;
