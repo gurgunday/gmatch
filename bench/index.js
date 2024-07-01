@@ -17,7 +17,7 @@ let gmatchMatches;
 let streamsearchMatches;
 
 bench
-  .add("gmatch", async () => {
+  .add("gmatch", () => {
     return new Promise((resolve) => {
       const search = new Match(pattern);
       const matches = [];
@@ -32,7 +32,7 @@ bench
       });
     });
   })
-  .add("streamsearch", async () => {
+  .add("streamsearch", () => {
     return new Promise((resolve) => {
       const matches = [];
       const search = new StreamSearch(
