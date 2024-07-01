@@ -34,7 +34,7 @@ const Match = class extends Writable {
     const table = new Array(size);
 
     for (let i = 0; i < size; ++i) {
-      table[i] = new Uint32Array(size).fill(patternLength);
+      table[i] = new Uint8Array(size).fill(patternLength);
     }
 
     for (let i = 0; i < patternLength - 1; ++i) {
