@@ -31,21 +31,15 @@ const Match = class extends Writable {
   }
 
   _buildTable(size) {
+    const { patternLength } = this;
     const table = new Array(size);
 
     for (let i = 0; i < size; ++i) {
-      table[i] = new Uint32Array(size);
-      table[i].fill(this.patternLength);
+      table[i] = new Uint32Array(size).fill(patternLength);
     }
 
-    for (let i = 0; i < this.patternLength - 1; ++i) {
-      table[this.pattern[i]][this.pattern[i + 1]] = this.patternLength - i - 1;
-    }
-
-    for (let i = 0; i < size; ++i) {
-      if (table[this.pattern[0]][i] === this.patternLength + 1) {
-        table[this.pattern[0]][i] = this.patternLength;
-      }
+    for (let i = 0; i < patternLength - 1; ++i) {
+      table[this.pattern[i]][this.pattern[i + 1]] = patternLength - i - 1;
     }
 
     return table;
@@ -70,16 +64,18 @@ const Match = class extends Writable {
 
     this.totalBytesProcessed += this.buffer.length;
 
-    this.buffer = Buffer.alloc(0);
+    this.buffer = null;
 
     callback();
   }
 
   _search() {
+    const { patternLength } = this;
+    const lastIndexOfPattern = patternLength - 1;
     let i = 0;
 
-    while (i <= this.buffer.length - this.patternLength) {
-      let j = this.patternLength - 1;
+    while (i <= this.buffer.length - patternLength) {
+      let j = lastIndexOfPattern;
 
       while (j >= 0 && this.pattern[j] === this.buffer[i + j]) {
         j--;
@@ -89,11 +85,11 @@ const Match = class extends Writable {
         const matchPosition = this.totalBytesProcessed + i;
         this.allMatches.push(matchPosition);
         this.emit("match", matchPosition);
-        i += this.patternLength;
+        i += patternLength;
       } else {
         i +=
-          this.table[this.buffer[i + this.patternLength - 1]][
-            this.buffer[i + this.patternLength]
+          this.table[this.buffer[i + lastIndexOfPattern]][
+            this.buffer[i + patternLength]
           ];
       }
     }
