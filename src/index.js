@@ -3,9 +3,6 @@
 const { Writable } = require("node:stream");
 const { Buffer } = require("node:buffer");
 
-/**
- * Uses BMHS2 algorithm to search for a pattern in a stream of data.
- */
 const Match = class extends Writable {
   /**
    * @param {string} pattern - The pattern to search for.
