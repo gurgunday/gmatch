@@ -56,7 +56,6 @@ const Match = class extends Writable {
     this._search();
 
     this.totalBytes += this.buffer.length;
-
     this.buffer = null;
 
     callback();
