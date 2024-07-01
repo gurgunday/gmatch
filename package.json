@@ -1,6 +1,6 @@
 {
   "name": "gmatch",
-  "description": "Blazing-fast streaming search library.",
+  "description": "Blazing-fast streaming match library.",
   "author": "Gürgün Dayıoğlu",
   "license": "MIT",
   "version": "0.0.1",
