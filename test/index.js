@@ -1,6 +1,6 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
-const { Match: StreamingSearch } = require("../src");
+const { Match: StreamingSearch } = require("..");
 
 describe("StreamingSearch", () => {
   test("constructor throws error for invalid pattern", () => {

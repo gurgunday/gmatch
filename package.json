@@ -14,6 +14,8 @@
   },
   "devDependencies": {
     "@fastify/pre-commit": "^2.1.0",
-    "grules": "^0.17.2"
+    "grules": "^0.17.2",
+    "streamsearch": "^1.1.0",
+    "tinybench": "^2.8.0"
   }
 }
