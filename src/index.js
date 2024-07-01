@@ -16,8 +16,8 @@ const Match = class extends Writable {
       throw new TypeError("Pattern must be a string");
     }
 
-    if (pattern.length <= 1 || pattern.length >= 257) {
-      throw new RangeError("Pattern length must be between 1 and 257");
+    if (pattern.length === 0 || pattern.length >= 257) {
+      throw new RangeError("Pattern length must be between 0 and 257");
     }
 
     super(options);
@@ -29,14 +29,10 @@ const Match = class extends Writable {
 
   static buildTable(size, pattern) {
     const patternLength = pattern.length;
-    const table = new Array(size);
-
-    for (let i = 0; i < size; ++i) {
-      table[i] = new Uint8Array(size).fill(patternLength);
-    }
+    const table = new Uint8Array(size).fill(patternLength);
 
     for (let i = 0; i < patternLength - 1; ++i) {
-      table[pattern[i]][pattern[i + 1]] = patternLength - i - 1;
+      table[pattern[i]] = patternLength - 1 - i;
     }
 
     return table;
@@ -51,7 +47,10 @@ const Match = class extends Writable {
     if (this.buffer.length > patternLength - 1) {
       const processedLength = this.buffer.length - (patternLength - 1);
       this.totalBytesProcessed += processedLength;
-      this.buffer = this.buffer.subarray(-patternLength + 1);
+      this.buffer =
+        patternLength === 1
+          ? Buffer.alloc(0)
+          : this.buffer.subarray(-patternLength + 1);
     }
 
     callback();
@@ -69,11 +68,10 @@ const Match = class extends Writable {
 
   _search() {
     const patternLength = this.pattern.length;
-    const lastIndexOfPattern = patternLength - 1;
     let i = 0;
 
     while (i <= this.buffer.length - patternLength) {
-      let j = lastIndexOfPattern;
+      let j = patternLength - 1;
 
       while (j >= 0 && this.pattern[j] === this.buffer[i + j]) {
         j--;
@@ -84,10 +82,7 @@ const Match = class extends Writable {
         this.emit("match", matchPosition);
         i += patternLength;
       } else {
-        i +=
-          this.table[this.buffer[i + lastIndexOfPattern]][
-            this.buffer[i + patternLength]
-          ];
+        i += this.table[this.buffer[patternLength - 1 + i]];
       }
     }
   }
