@@ -22,15 +22,13 @@ const Match = class extends Writable {
 
     super(options);
     this.pattern = Buffer.from(pattern);
-    this.patternLength = this.pattern.length;
-    this.totalBytesProcessed = 0;
     this.buffer = Buffer.alloc(0);
-    this.allMatches = [];
-    this.table = this._buildTable(256);
+    this.table = Match.buildTable(256, this.pattern);
+    this.totalBytesProcessed = 0;
   }
 
-  _buildTable(size) {
-    const { pattern, patternLength } = this;
+  static buildTable(size, pattern) {
+    const patternLength = pattern.length;
     const table = new Array(size);
 
     for (let i = 0; i < size; ++i) {
@@ -45,14 +43,15 @@ const Match = class extends Writable {
   }
 
   _write(chunk, encoding, callback) {
+    const patternLength = this.pattern.length;
     this.buffer = Buffer.concat([this.buffer, chunk]);
 
     this._search();
 
-    if (this.buffer.length > this.patternLength - 1) {
-      const processedLength = this.buffer.length - (this.patternLength - 1);
+    if (this.buffer.length > patternLength - 1) {
+      const processedLength = this.buffer.length - (patternLength - 1);
       this.totalBytesProcessed += processedLength;
-      this.buffer = this.buffer.subarray(-this.patternLength + 1);
+      this.buffer = this.buffer.subarray(-patternLength + 1);
     }
 
     callback();
@@ -69,7 +68,7 @@ const Match = class extends Writable {
   }
 
   _search() {
-    const { patternLength } = this;
+    const patternLength = this.pattern.length;
     const lastIndexOfPattern = patternLength - 1;
     let i = 0;
 
@@ -82,7 +81,6 @@ const Match = class extends Writable {
 
       if (j < 0) {
         const matchPosition = this.totalBytesProcessed + i;
-        this.allMatches.push(matchPosition);
         this.emit("match", matchPosition);
         i += patternLength;
       } else {
