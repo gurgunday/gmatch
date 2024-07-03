@@ -14,7 +14,7 @@ const Match = class extends Writable {
     }
 
     if (pattern.length === 0 || pattern.length >= 257) {
-      throw new RangeError("Pattern length must be between 0 and 257");
+      throw new RangeError("Pattern must be between 1 and 256 bytes");
     }
 
     super(options);
