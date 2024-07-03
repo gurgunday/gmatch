@@ -74,11 +74,10 @@ const Match = class extends Writable {
       }
 
       if (j < 0) {
-        const matchPosition = processedBytes + i;
-        this.emit("match", matchPosition);
+        this.emit("match", processedBytes + i);
         i += patternLength;
       } else {
-        i += table[buffer[i + patternLength]];
+        i += table[buffer[patternLength + i]];
       }
     }
   }
