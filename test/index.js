@@ -1,3 +1,5 @@
+"use strict";
+
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 const { Match: StreamingSearch } = require("..");
@@ -206,5 +208,25 @@ describe("StreamingSearch", () => {
     });
 
     assert.deepEqual(matches, [0]);
+  });
+
+  test("Buffer writes", async () => {
+    const search = new StreamingSearch("test");
+    const matches = [];
+    search.on("match", (m) => {
+      return matches.push(m);
+    });
+
+    await new Promise((resolve) => {
+      search.write("");
+      search.write("test");
+      search.write(Buffer.from("test"));
+      search.write("", () => {
+        search.end(resolve);
+      });
+    });
+
+    assert.deepEqual(matches, [0, 4]);
+    assert.equal(search.processedBytes, 8);
   });
 });

@@ -7,6 +7,9 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "exports": "./src/index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "bench": "node bench/index.js",
     "test": "npm run lint && node --test test/index.js",
