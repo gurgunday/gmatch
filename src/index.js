@@ -26,11 +26,10 @@ const Match = class extends Writable {
 
   static buildTable(size, pattern) {
     const patternLength = pattern.length;
-    const patternLastIndex = patternLength - 1;
-    const table = new Uint8Array(size).fill(patternLength);
+    const table = new Uint8Array(size).fill(patternLength + 1);
 
-    for (let i = 0; i < patternLastIndex; ++i) {
-      table[pattern[i]] = patternLastIndex - i;
+    for (let i = 0; i < patternLength; ++i) {
+      table[pattern[i]] = patternLength - i;
     }
 
     return table;
@@ -40,12 +39,12 @@ const Match = class extends Writable {
     this.buffer = Buffer.concat([this.buffer, chunk]);
     this._search();
 
-    if (this.buffer.length > this.pattern.length - 1) {
+    if (this.buffer.length >= this.pattern.length) {
       this.processedBytes += this.buffer.length - (this.pattern.length - 1);
       this.buffer =
         this.pattern.length === 1
           ? Buffer.alloc(0)
-          : this.buffer.subarray(-this.pattern.length + 1);
+          : this.buffer.subarray(-(this.pattern.length - 1));
     }
 
     callback();
@@ -79,7 +78,7 @@ const Match = class extends Writable {
         this.emit("match", matchPosition);
         i += patternLength;
       } else {
-        i += table[buffer[patternLastIndex + i]];
+        i += table[buffer[i + patternLength]];
       }
     }
   }
