@@ -20,15 +20,15 @@ const Match = class extends Writable {
     }
 
     super(options);
-    this.pattern = Buffer.from(pattern);
-    this.table = Match.buildTable(256, this.pattern);
-    this.buffer = Buffer.alloc(0);
     this.processedBytes = 0;
+    this.buffer = Buffer.alloc(0);
+    this.pattern = Buffer.from(pattern);
+    this.table = Match.buildTable(this.pattern);
   }
 
-  static buildTable(size, pattern) {
+  static buildTable(pattern) {
     const patternLength = pattern.length;
-    const table = new Uint8Array(size).fill(patternLength + 1);
+    const table = new Uint8Array(256).fill(patternLength + 1);
 
     for (let i = 0; i < patternLength; ++i) {
       table[pattern[i]] = patternLength - i;
