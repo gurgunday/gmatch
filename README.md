@@ -1,4 +1,4 @@
-streamin**gmatch** lets you search a pattern in a stream.
+streamin**gmatch** lets you search a pattern in a stream, as fast as JavaScriptly possible.
 
 ## Installation
 
@@ -6,33 +6,15 @@ streamin**gmatch** lets you search a pattern in a stream.
 npm i gmatch
 ```
 
-## API Reference
+## API
 
-### `Match` class
+### `Match`
 
 The `Match` class extends the Node.js `Writable` stream and implements the BMHS pattern matching algorithm.
-
-#### Constructor
-
-```js
-new Match(pattern[, options])
-```
-
-- `pattern` (string): The pattern to search for.
-- `options` (object, optional): Options for the Writable stream.
-
-Throws:
-
-- `TypeError`: If the pattern is not a string.
-- `RangeError`: If the pattern length is 0 or greater than or equal to 257.
 
 #### Events
 
 - `'match'`: Emitted when a match is found. The event handler receives the position of the match as an argument.
-
-#### Methods
-
-The `Match` class inherits all methods from the `Writable` stream class.
 
 ## Usage
 
@@ -96,7 +78,3 @@ Here are the benchmark results comparing gmatch with streamsearch:
 gmatch matches: 1002
 streamsearch matches: 1002
 ```
-
-As shown in the benchmark results, gmatch performs approximately 21% faster than streamsearch in terms of operations per second.
-
-The benchmark script is located under `bench/index.js`. Users can run their own benchmarks to verify these results or test performance in their specific use cases.
