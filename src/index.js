@@ -72,7 +72,7 @@ const Match = class extends Writable {
     for (let i = 0; i <= difference; ) {
       let j = patternLastIndex;
 
-      while (j >= 0 && pattern[j] === buffer[i + j]) {
+      while (j >= 0 && buffer[i + j] === pattern[j]) {
         --j;
       }
 
