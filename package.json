@@ -11,7 +11,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "bench": "node bench/index.js",
+    "benchmark": "node bench/index.js",
     "test": "npm run lint && node --test test/index.js",
     "lint": "eslint . && prettier --check .",
     "lint:fix": "eslint --fix . && prettier --write ."
