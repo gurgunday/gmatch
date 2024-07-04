@@ -19,8 +19,8 @@ const Match = class extends Writable {
 
     super(options);
     this.pattern = Buffer.from(pattern);
-    this.buffer = Buffer.alloc(0);
     this.table = Match.buildTable(256, this.pattern);
+    this.buffer = Buffer.alloc(0);
     this.processedBytes = 0;
   }
 
@@ -66,15 +66,16 @@ const Match = class extends Writable {
     const { buffer, pattern } = this;
     const bufferLength = buffer.length;
     const patternLength = pattern.length;
+    const difference = bufferLength - patternLength;
 
-    if (bufferLength < patternLength) {
+    if (difference < 0) {
       return;
     }
 
     const { table, processedBytes } = this;
     const patternLastIndex = patternLength - 1;
 
-    for (let i = 0; i <= bufferLength - patternLength; ) {
+    for (let i = 0; i <= difference; ) {
       let j = patternLastIndex;
 
       while (j >= 0 && pattern[j] === buffer[i + j]) {
@@ -84,9 +85,10 @@ const Match = class extends Writable {
       if (j < 0) {
         this.emit("match", processedBytes + i);
         i += patternLength;
-      } else {
-        i += table[buffer[patternLength + i]];
+        continue;
       }
+
+      i += table[buffer[patternLength + i]];
     }
   }
 };
