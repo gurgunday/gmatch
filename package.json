@@ -3,7 +3,7 @@
   "description": "Blazing-fast streaming match library.",
   "author": "Gürgün Dayıoğlu",
   "license": "MIT",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "type": "commonjs",
   "main": "./src/index.js",
   "exports": "./src/index.js",
