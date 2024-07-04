@@ -22,7 +22,7 @@ Here's a basic example of how to use the gmatch library:
 
 ```js
 const { Match } = require("gmatch");
-const fs = require("fs");
+const fs = require("node:fs");
 
 // Create a new Match instance
 const matcher = new Match("example");
