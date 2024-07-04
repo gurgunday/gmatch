@@ -1,4 +1,4 @@
-streamin**gmatch** lets you search a pattern in a stream, as fast as JavaScriptly possible.
+streamin**gmatch** lets you search for a pattern in a stream, as fast as JavaScriptly possible.
 
 ## Installation
 
@@ -56,8 +56,8 @@ matcher.on("match", (position) => {
   console.log(`Match found at position: ${position}`);
 });
 
-matcher.write("Some text with a pattern in it");
-matcher.write(" and more pattern here");
+matcher.write("Some text with a pattern in it and more pat");
+matcher.write("tern and more pattern here");
 
 matcher.end();
 ```
