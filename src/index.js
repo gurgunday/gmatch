@@ -87,7 +87,7 @@ const Match = class extends Writable {
     this.buffer =
       patternLength === 1
         ? Buffer.alloc(0) // No need to keep the buffer if the pattern is a single byte
-        : buffer.subarray(-patternLastIndex); // Keep the last patternLength - 1 bytes for potential match
+        : buffer.subarray(-patternLastIndex); // Keep the last ${patternLength - 1} bytes for potential match
   }
 };
 
