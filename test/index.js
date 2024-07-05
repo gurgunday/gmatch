@@ -127,11 +127,27 @@ describe("StreamingSearch", () => {
     const search = new StreamingSearch("xyz");
     const matches = [];
     search.on("match", (m) => {
-      return matches.push(...m);
+      return matches.push(m);
     });
 
     await new Promise((resolve) => {
       search.write("This is a test without any matches", () => {
+        search.end(resolve);
+      });
+    });
+
+    assert.deepEqual(matches, []);
+  });
+
+  test("no matches /2", async () => {
+    const search = new StreamingSearch("xyzxyz");
+    const matches = [];
+    search.on("match", (m) => {
+      return matches.push(m);
+    });
+
+    await new Promise((resolve) => {
+      search.write("test", () => {
         search.end(resolve);
       });
     });
