@@ -4,7 +4,7 @@ const { Match } = require("../src/index");
 const StreamSearch = require("streamsearch");
 const { Bench } = require("tinybench");
 
-const bench = new Bench({ time: 1000 });
+const bench = new Bench({ time: 2500 });
 
 const pattern = "example";
 const longText =

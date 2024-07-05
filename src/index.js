@@ -60,16 +60,17 @@ const Match = class extends Writable {
     const { buffer, pattern } = this;
     const bufferLength = buffer.length;
     const patternLength = pattern.length;
+    const difference = bufferLength - patternLength;
 
-    if (bufferLength < patternLength) {
+    if (difference < 0) {
       return;
     }
 
     const { table, processedBytes } = this;
-    const difference = bufferLength - patternLength;
     const patternLastIndex = patternLength - 1;
+    let i = 0;
 
-    for (let i = 0; i <= difference; ) {
+    do {
       let j = patternLastIndex;
 
       while (j >= 0 && buffer[i + j] === pattern[j]) {
@@ -83,7 +84,7 @@ const Match = class extends Writable {
       }
 
       i += table[buffer[patternLength + i]];
-    }
+    } while (i <= difference);
 
     this.buffer =
       patternLength === 1
