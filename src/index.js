@@ -38,11 +38,6 @@ const Match = class extends Writable {
   }
 
   _write(chunk, encoding, callback) {
-    if (!chunk.length) {
-      callback();
-      return;
-    }
-
     this.buffer = Buffer.concat([this.buffer, chunk]);
     this._search();
 
