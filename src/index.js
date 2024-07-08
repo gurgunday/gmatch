@@ -20,6 +20,7 @@ const Match = class extends Writable {
     }
 
     super(options);
+    this.lastMatchIndex = -1;
     this.processedBytes = 0;
     this.buffer = Buffer.alloc(0);
     this.pattern = Buffer.from(pattern);
@@ -45,26 +46,19 @@ const Match = class extends Writable {
   }
 
   _final(callback) {
-    this.processedBytes += this.buffer.length;
-    this.buffer = null;
+    this.processedBytes += this.buffer.length - (this.lastMatchIndex + 1);
 
     callback();
   }
 
   _search() {
-    const { buffer, pattern } = this;
+    const { buffer, pattern, table, processedBytes } = this;
     const bufferLength = buffer.length;
     const patternLength = pattern.length;
+    const patternLastIndex = patternLength - 1;
     const difference = bufferLength - patternLength;
 
-    if (difference < 0) {
-      return;
-    }
-
-    const { table, processedBytes } = this;
-    const patternLastIndex = patternLength - 1;
-
-    for (let i = 0; i <= difference; ) {
+    for (let i = processedBytes; i <= difference; ) {
       let j = patternLastIndex;
 
       while (j >= 0 && buffer[i + j] === pattern[j]) {
@@ -72,7 +66,8 @@ const Match = class extends Writable {
       }
 
       if (j < 0) {
-        this.emit("match", processedBytes + i);
+        this.emit("match", i);
+        this.lastMatchIndex = i;
         i += patternLength;
         continue;
       }
@@ -80,11 +75,7 @@ const Match = class extends Writable {
       i += table[buffer[patternLength + i]];
     }
 
-    this.buffer =
-      patternLength === 1
-        ? Buffer.alloc(0) // No need to keep the buffer if the pattern is a single byte
-        : buffer.subarray(-patternLastIndex); // Keep the last `patternLength - 1` bytes for potential future matches
-    this.processedBytes += difference + 1;
+    this.processedBytes = difference + 1;
   }
 };
 
