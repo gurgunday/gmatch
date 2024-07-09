@@ -1,7 +1,5 @@
-"use strict";
-
-const { Writable } = require("node:stream");
-const { Buffer } = require("node:buffer");
+import { Writable } from "node:stream";
+import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
   /**
@@ -79,4 +77,4 @@ const Match = class extends Writable {
   }
 };
 
-module.exports.Match = Match;
+export { Match };
