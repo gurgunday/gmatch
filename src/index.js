@@ -46,7 +46,7 @@ const Match = class extends Writable {
   }
 
   _final(callback) {
-    this.processedBytes += this.buffer.length - (this.lastMatchIndex + 1);
+    this.processedBytes = this.buffer.length;
 
     callback();
   }
