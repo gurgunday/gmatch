@@ -1,8 +1,8 @@
 "use strict";
 
-const { Match } = require("../src/index");
-const StreamSearch = require("streamsearch");
 const { Bench } = require("tinybench");
+const StreamSearch = require("streamsearch");
+const { Match } = require("../src/index");
 
 const bench = new Bench({ time: 2500 });
 
