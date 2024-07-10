@@ -2,15 +2,15 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
-  buffer = Buffer.alloc(0);
-  processedBytes = 0;
-  pattern;
-  table;
+  #buffer = Buffer.alloc(0);
+  #processedBytes = 0;
+  #pattern;
+  #table;
 
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
-   * @throws {Error} - If the pattern is not a string with a length between 1 and 256 bytes.
+   * @throws {Error} - If the pattern is not a string, or its length is less than 1 or more than 256 bytes.
    */
   constructor(pattern, options) {
     if (typeof pattern !== "string") {
@@ -22,31 +22,35 @@ const Match = class extends Writable {
     }
 
     super(options);
-    this.pattern = Buffer.from(pattern);
-    this.table = Match.buildTable(this.pattern);
+    this.#pattern = Buffer.from(pattern);
+    this.#table = Match.buildTable(this.#pattern);
   }
 
   _write(chunk, encoding, callback) {
-    this.buffer = Buffer.concat([this.buffer, chunk]);
+    this.#buffer = Buffer.concat([this.#buffer, chunk]);
     this.#search();
     callback();
   }
 
   _final(callback) {
-    this.processedBytes = this.buffer.length;
+    this.#processedBytes = this.#buffer.length;
     callback();
   }
 
   #search() {
-    const { buffer, pattern, table, processedBytes } = this;
+    const buffer = this.#buffer;
+    const table = this.#table;
+    const pattern = this.#pattern;
     const bufferLength = buffer.length;
     const patternLength = pattern.length;
-    const patternLastIndex = patternLength - 1;
     const difference = bufferLength - patternLength;
 
     if (difference < 0) {
       return;
     }
+
+    const processedBytes = this.#processedBytes;
+    const patternLastIndex = patternLength - 1;
 
     for (let i = processedBytes; i <= difference; ) {
       let j = patternLastIndex;
@@ -64,7 +68,15 @@ const Match = class extends Writable {
       i += table[buffer[patternLength + i]];
     }
 
-    this.processedBytes = difference + 1;
+    this.#processedBytes = difference + 1;
+  }
+
+  get buffer() {
+    return this.#buffer;
+  }
+
+  get processedBytes() {
+    return this.#processedBytes;
   }
 
   static buildTable(pattern) {

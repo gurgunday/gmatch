@@ -236,9 +236,11 @@ test("short writes", async () => {
 
   assert.deepEqual(matches, []);
   assert.deepEqual(search.processedBytes, 0);
+  assert.equal(search.buffer.length, 1);
 
   search.write("sss");
   assert.deepEqual(search.processedBytes, 1);
+  assert.equal(search.buffer.length, 4);
 });
 
 test("Buffer writes", async () => {
