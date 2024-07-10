@@ -10,8 +10,7 @@ const Match = class extends Writable {
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
-   * @throws {TypeError} - If the pattern is not a string.
-   * @throws {RangeError} - If the pattern length is not in the range [1, 256].
+   * @throws {Error} - If the pattern is not a string with a length between 1 and 256 bytes.
    */
   constructor(pattern, options) {
     if (typeof pattern !== "string") {
@@ -30,13 +29,11 @@ const Match = class extends Writable {
   _write(chunk, encoding, callback) {
     this.buffer = Buffer.concat([this.buffer, chunk]);
     this.#search();
-
     callback();
   }
 
   _final(callback) {
     this.processedBytes = this.buffer.length;
-
     callback();
   }
 
