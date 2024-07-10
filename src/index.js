@@ -10,7 +10,8 @@ const Match = class extends Writable {
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
-   * @throws {Error} - If the pattern is not a string, or if its length is less than 1 or more than 256 bytes.
+   * @throws {TypeError} - The pattern must be a string.
+   * @throws {RangeError} - The pattern length must be between 1 and 256.
    */
   constructor(pattern, options) {
     if (typeof pattern !== "string") {
@@ -18,7 +19,7 @@ const Match = class extends Writable {
     }
 
     if (pattern.length === 0 || pattern.length >= 257) {
-      throw new RangeError("Pattern must be between 1 and 256 bytes");
+      throw new RangeError("Pattern length must be between 1 and 256");
     }
 
     super(options);
@@ -40,9 +41,8 @@ const Match = class extends Writable {
   #search() {
     const buffer = this.#buffer;
     const pattern = this.#pattern;
-    const bufferLength = buffer.length;
     const patternLength = pattern.length;
-    const difference = bufferLength - patternLength;
+    const difference = buffer.length - patternLength;
 
     if (difference < 0) {
       return;
