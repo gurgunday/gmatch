@@ -18,7 +18,6 @@ const Match = class extends Writable {
     }
 
     super(options);
-    this.lastMatchIndex = -1;
     this.processedBytes = 0;
     this.buffer = Buffer.alloc(0);
     this.pattern = Buffer.from(pattern);
@@ -38,7 +37,7 @@ const Match = class extends Writable {
 
   _write(chunk, encoding, callback) {
     this.buffer = Buffer.concat([this.buffer, chunk]);
-    this._search();
+    this.#search();
 
     callback();
   }
@@ -49,7 +48,7 @@ const Match = class extends Writable {
     callback();
   }
 
-  _search() {
+  #search() {
     const { buffer, pattern, table, processedBytes } = this;
     const bufferLength = buffer.length;
     const patternLength = pattern.length;
@@ -69,7 +68,6 @@ const Match = class extends Writable {
 
       if (j < 0) {
         this.emit("match", i);
-        this.lastMatchIndex = i;
         i += patternLength;
         continue;
       }
