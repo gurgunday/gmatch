@@ -2,16 +2,10 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
-  static buildTable(pattern) {
-    const patternLength = pattern.length;
-    const table = new Uint8Array(256).fill(patternLength + 1);
-
-    for (let i = 0; i < patternLength; ++i) {
-      table[pattern[i]] = patternLength - i;
-    }
-
-    return table;
-  }
+  buffer = Buffer.alloc(0);
+  processedBytes = 0;
+  pattern;
+  table;
 
   /**
    * @param {string} pattern - The pattern to search for.
@@ -29,8 +23,6 @@ const Match = class extends Writable {
     }
 
     super(options);
-    this.processedBytes = 0;
-    this.buffer = Buffer.alloc(0);
     this.pattern = Buffer.from(pattern);
     this.table = Match.buildTable(this.pattern);
   }
@@ -76,6 +68,17 @@ const Match = class extends Writable {
     }
 
     this.processedBytes = difference + 1;
+  }
+
+  static buildTable(pattern) {
+    const patternLength = pattern.length;
+    const table = new Uint8Array(256).fill(patternLength + 1);
+
+    for (let i = 0; i < patternLength; ++i) {
+      table[pattern[i]] = patternLength - i;
+    }
+
+    return table;
   }
 };
 
