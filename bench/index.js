@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-push-push */
 import { Bench } from "tinybench";
 
 import StreamSearch from "streamsearch";
@@ -22,11 +23,12 @@ bench
       search.on("match", (m) => {
         return matches.push(m);
       });
-      search.write(longText, () => {
-        search.end(() => {
-          gmatchMatches = matches.length;
-          resolve(matches);
-        });
+      search.write(longText);
+      search.write(longText);
+      search.write(longText);
+      search.end(() => {
+        gmatchMatches = matches.length;
+        resolve(matches);
       });
     });
   })
@@ -38,6 +40,8 @@ bench
           matches.push(start);
         }
       });
+      search.push(longText);
+      search.push(longText);
       search.push(longText);
       streamsearchMatches = matches.length;
       resolve(matches);
