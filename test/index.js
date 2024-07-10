@@ -226,6 +226,22 @@ describe("StreamingSearch", () => {
     assert.deepEqual(matches, [0]);
   });
 
+  test("short writes", async () => {
+    const search = new StreamingSearch("test");
+    const matches = [];
+    search.on("match", (m) => {
+      return matches.push(m);
+    });
+
+    search.write("s");
+
+    assert.deepEqual(matches, []);
+    assert.deepEqual(search.processedBytes, 0);
+
+    search.write("sss");
+    assert.deepEqual(search.processedBytes, 1);
+  });
+
   test("Buffer writes", async () => {
     const search = new StreamingSearch("test");
     const matches = [];
