@@ -1,11 +1,10 @@
-"use strict";
+/* eslint-disable unicorn/no-array-push-push */
+import { Bench } from "tinybench";
 
-const { Bench } = require("tinybench");
-const StreamSearch = require("streamsearch");
-const { Match } = require("../src/index");
+import StreamSearch from "streamsearch";
+import { Match } from "../src/index.js";
 
 const bench = new Bench({ time: 2500 });
-
 const pattern = "example";
 const longText =
   `This is a long text with multiple occurrences of the word example. ` +
@@ -24,11 +23,12 @@ bench
       search.on("match", (m) => {
         return matches.push(m);
       });
-      search.write(longText, () => {
-        search.end(() => {
-          gmatchMatches = matches.length;
-          resolve(matches);
-        });
+      search.write(longText);
+      search.write(longText);
+      search.write(longText);
+      search.end(() => {
+        gmatchMatches = matches.length;
+        resolve(matches);
       });
     });
   })
@@ -40,6 +40,8 @@ bench
           matches.push(start);
         }
       });
+      search.push(longText);
+      search.push(longText);
       search.push(longText);
       streamsearchMatches = matches.length;
       resolve(matches);
