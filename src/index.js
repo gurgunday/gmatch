@@ -39,7 +39,6 @@ const Match = class extends Writable {
 
   #search() {
     const buffer = this.#buffer;
-    const table = this.#table;
     const pattern = this.#pattern;
     const bufferLength = buffer.length;
     const patternLength = pattern.length;
@@ -49,6 +48,7 @@ const Match = class extends Writable {
       return;
     }
 
+    const table = this.#table;
     const processedBytes = this.#processedBytes;
     const patternLastIndex = patternLength - 1;
 
