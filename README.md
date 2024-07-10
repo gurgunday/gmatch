@@ -41,10 +41,6 @@ matcher.on("finish", () => {
 });
 ```
 
-In this example, the `Match` instance searches for the pattern 'example' in the content of the file. Every time a match is found, it logs the position of the match.
-
-## Advanced Usage
-
 You can also use the `Match` class with other types of streams or manually write chunks to it:
 
 ```js
@@ -61,8 +57,6 @@ matcher.write("tern and more pattern here");
 
 matcher.end();
 ```
-
-This approach allows you to use gmatch with any source of data, not just file streams.
 
 ## Benchmarks
 
