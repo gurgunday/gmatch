@@ -2,6 +2,17 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
+  static buildTable(pattern) {
+    const patternLength = pattern.length;
+    const table = new Uint8Array(256).fill(patternLength + 1);
+
+    for (let i = 0; i < patternLength; ++i) {
+      table[pattern[i]] = patternLength - i;
+    }
+
+    return table;
+  }
+
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
@@ -22,17 +33,6 @@ const Match = class extends Writable {
     this.buffer = Buffer.alloc(0);
     this.pattern = Buffer.from(pattern);
     this.table = Match.buildTable(this.pattern);
-  }
-
-  static buildTable(pattern) {
-    const patternLength = pattern.length;
-    const table = new Uint8Array(256).fill(patternLength + 1);
-
-    for (let i = 0; i < patternLength; ++i) {
-      table[pattern[i]] = patternLength - i;
-    }
-
-    return table;
   }
 
   _write(chunk, encoding, callback) {
