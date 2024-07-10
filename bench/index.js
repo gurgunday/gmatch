@@ -1,9 +1,9 @@
 import { Bench } from "tinybench";
+
 import StreamSearch from "streamsearch";
 import { Match } from "../src/index.js";
 
 const bench = new Bench({ time: 2500 });
-
 const pattern = "example";
 const longText =
   `This is a long text with multiple occurrences of the word example. ` +
