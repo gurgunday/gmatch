@@ -58,6 +58,10 @@ const Match = class extends Writable {
     const patternLastIndex = patternLength - 1;
     const difference = bufferLength - patternLength;
 
+    if (difference < 0) {
+      return;
+    }
+
     for (let i = processedBytes; i <= difference; ) {
       let j = patternLastIndex;
 
