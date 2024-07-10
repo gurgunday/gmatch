@@ -10,7 +10,7 @@ const Match = class extends Writable {
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
-   * @throws {Error} - If the pattern is not a string, or its length is less than 1 or more than 256 bytes.
+   * @throws {Error} - If the pattern is not a string, or if its length is less than 1 or more than 256 bytes.
    */
   constructor(pattern, options) {
     if (typeof pattern !== "string") {
