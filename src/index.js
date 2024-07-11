@@ -71,12 +71,12 @@ const Match = class extends Writable {
     this.#processedBytes = difference + 1;
   }
 
-  get buffer() {
-    return this.#buffer;
-  }
-
   get processedBytes() {
     return this.#processedBytes;
+  }
+
+  get buffer() {
+    return this.#buffer;
   }
 
   static buildTable(pattern) {
