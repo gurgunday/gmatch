@@ -2,6 +2,7 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
+  #lastMatchIndex = -1;
   #matches = 0;
   #processedBytes = 0;
   #lookbehindSize = 0;
@@ -68,6 +69,7 @@ const Match = class extends Writable {
 
       if (j === -1) {
         ++this.#matches;
+        this.#lastMatchIndex = processedBytes + i;
         this.emit("match", processedBytes + i);
         i += patternLength;
         continue;
@@ -76,9 +78,15 @@ const Match = class extends Writable {
       i += patternTable[buffer[patternLength + i]];
     }
 
-    this.#lookbehind.set(buffer.subarray(difference + 1));
+    if (this.#lastMatchIndex === difference) {
+      this.#lookbehindSize = 0;
+      this.#processedBytes += buffer.length;
+      return;
+    }
+
     this.#lookbehindSize = this.#lookbehind.length;
     this.#processedBytes += difference + 1;
+    this.#lookbehind.set(buffer.subarray(difference + 1));
   }
 
   get processedBytes() {
