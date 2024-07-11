@@ -2,10 +2,12 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
-  #buffer = Buffer.alloc(0);
+  #matches = 0;
   #processedBytes = 0;
+  #lookbehindSize = 0;
+  #lookbehind;
   #pattern;
-  #table;
+  #patternTable;
 
   /**
    * @param {string} pattern - The pattern to search for.
@@ -24,35 +26,42 @@ const Match = class extends Writable {
 
     super(options);
     this.#pattern = Buffer.from(pattern);
-    this.#table = Match.buildTable(this.#pattern);
+    this.#patternTable = Match.buildTable(this.#pattern);
+    this.#lookbehind = Buffer.alloc(this.#pattern.length - 1);
   }
 
   _write(chunk, encoding, callback) {
-    this.#buffer = Buffer.concat([this.#buffer, chunk]);
-    this.#search();
+    this.#search(chunk);
     callback();
   }
 
   _final(callback) {
-    this.#processedBytes = this.#buffer.length;
+    this.#processedBytes += this.#lookbehindSize;
     callback();
   }
 
-  #search() {
-    const buffer = this.#buffer;
+  #search(chunk) {
+    const buffer = Buffer.concat([
+      this.#lookbehind.subarray(0, this.#lookbehindSize),
+      chunk,
+    ]);
+
     const pattern = this.#pattern;
     const patternLength = pattern.length;
+
     const difference = buffer.length - patternLength;
 
     if (difference < 0) {
+      buffer.copy(this.#lookbehind);
+      this.#lookbehindSize = buffer.length;
       return;
     }
 
-    const table = this.#table;
     const processedBytes = this.#processedBytes;
+    const patternTable = this.#patternTable;
     const patternLastIndex = patternLength - 1;
 
-    for (let i = processedBytes; i <= difference; ) {
+    for (let i = 0; i <= difference; ) {
       let j = patternLastIndex;
 
       while (j !== -1 && buffer[i + j] === pattern[j]) {
@@ -60,23 +69,26 @@ const Match = class extends Writable {
       }
 
       if (j === -1) {
-        this.emit("match", i);
+        ++this.#matches;
+        this.emit("match", processedBytes + i);
         i += patternLength;
         continue;
       }
 
-      i += table[buffer[patternLength + i]];
+      i += patternTable[buffer[patternLength + i]];
     }
 
-    this.#processedBytes = difference + 1;
+    buffer.copy(this.#lookbehind, 0, difference + 1);
+    this.#lookbehindSize = this.#lookbehind.length;
+    this.#processedBytes += difference + 1;
   }
 
   get processedBytes() {
     return this.#processedBytes;
   }
 
-  get buffer() {
-    return this.#buffer;
+  get matches() {
+    return this.#matches;
   }
 
   static buildTable(pattern) {
