@@ -55,11 +55,11 @@ const Match = class extends Writable {
     for (let i = processedBytes; i <= difference; ) {
       let j = patternLastIndex;
 
-      while (j >= 0 && buffer[i + j] === pattern[j]) {
+      while (j !== -1 && buffer[i + j] === pattern[j]) {
         --j;
       }
 
-      if (j < 0) {
+      if (j === -1) {
         this.emit("match", i);
         i += patternLength;
         continue;
@@ -83,7 +83,7 @@ const Match = class extends Writable {
     const patternLength = pattern.length;
     const table = new Uint8Array(256).fill(patternLength + 1);
 
-    for (let i = 0; i < patternLength; ++i) {
+    for (let i = 0; i !== patternLength; ++i) {
       table[pattern[i]] = patternLength - i;
     }
 
