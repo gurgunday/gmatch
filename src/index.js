@@ -12,8 +12,6 @@ const Match = class extends Writable {
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
-   * @throws {TypeError} - The pattern must be a string.
-   * @throws {RangeError} - The pattern length must be between 1 and 256.
    */
   constructor(pattern, options) {
     if (typeof pattern !== "string") {
@@ -27,7 +25,7 @@ const Match = class extends Writable {
     super(options);
     this.#pattern = Buffer.from(pattern);
     this.#patternTable = Match.buildTable(this.#pattern);
-    this.#lookbehind = Buffer.alloc(this.#pattern.length - 1);
+    this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
   _write(chunk, encoding, callback) {
@@ -52,7 +50,7 @@ const Match = class extends Writable {
     const difference = buffer.length - patternLength;
 
     if (difference < 0) {
-      buffer.copy(this.#lookbehind);
+      this.#lookbehind.set(buffer);
       this.#lookbehindSize = buffer.length;
       return;
     }
@@ -78,7 +76,7 @@ const Match = class extends Writable {
       i += patternTable[buffer[patternLength + i]];
     }
 
-    buffer.copy(this.#lookbehind, 0, difference + 1);
+    this.#lookbehind.set(buffer.subarray(difference + 1));
     this.#lookbehindSize = this.#lookbehind.length;
     this.#processedBytes += difference + 1;
   }
