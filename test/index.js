@@ -255,6 +255,9 @@ test("short writes /2", async () => {
 
   search.write("t");
   assert.deepEqual(search.processedBytes, 4);
+
+  search.write("t");
+  assert.deepEqual(search.processedBytes, 4);
 });
 
 test("Buffer writes", async () => {
