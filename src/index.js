@@ -6,8 +6,8 @@ const Match = class extends Writable {
   #processedBytes = 0;
   #lookbehindSize = 0;
   #lookbehind;
-  #pattern;
   #patternTable;
+  #pattern;
 
   /**
    * @param {string} pattern - The pattern to search for.
