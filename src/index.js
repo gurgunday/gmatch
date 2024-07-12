@@ -70,7 +70,7 @@ const Match = class extends Writable {
       if (j === -1) {
         ++this.#matches;
         this.#lastMatchIndex = processedBytes + i;
-        this.emit("match", processedBytes + i);
+        this.emit("match", this.#lastMatchIndex);
         i += patternLength;
         continue;
       }
@@ -89,12 +89,26 @@ const Match = class extends Writable {
     this.#lookbehind.set(buffer.subarray(difference + 1));
   }
 
+  get pattern() {
+    return this.#pattern.toString();
+  }
+
+  get lookbehind() {
+    return Buffer.from(
+      this.#lookbehind.subarray(0, this.#lookbehindSize),
+    ).toString();
+  }
+
   get processedBytes() {
     return this.#processedBytes;
   }
 
   get matches() {
     return this.#matches;
+  }
+
+  get lastMatchIndex() {
+    return this.#lastMatchIndex;
   }
 
   static buildTable(pattern) {
