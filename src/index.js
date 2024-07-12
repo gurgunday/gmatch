@@ -11,8 +11,8 @@ const Match = class extends Writable {
   #pattern;
 
   /**
-   * @param {string} pattern
-   * @param {object} [options]
+   * @param {string} pattern - The pattern to search for.
+   * @param {object} [options] - The options for the Writable stream.
    * @throws {TypeError}
    * @throws {RangeError}
    */
