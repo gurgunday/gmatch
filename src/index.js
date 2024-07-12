@@ -2,16 +2,17 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
-  #buffer = Buffer.alloc(0);
+  #matchIndex = -1;
+  #matches = 0;
   #processedBytes = 0;
+  #lookbehindSize = 0;
+  #lookbehind;
+  #patternTable;
   #pattern;
-  #table;
 
   /**
    * @param {string} pattern - The pattern to search for.
    * @param {object} [options] - The options for the Writable stream.
-   * @throws {TypeError} - The pattern must be a string.
-   * @throws {RangeError} - The pattern length must be between 1 and 256.
    */
   constructor(pattern, options) {
     if (typeof pattern !== "string") {
@@ -24,35 +25,42 @@ const Match = class extends Writable {
 
     super(options);
     this.#pattern = Buffer.from(pattern);
-    this.#table = Match.buildTable(this.#pattern);
+    this.#patternTable = Match.buildTable(this.#pattern);
+    this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
   _write(chunk, encoding, callback) {
-    this.#buffer = Buffer.concat([this.#buffer, chunk]);
-    this.#search();
+    this.#search(chunk);
     callback();
   }
 
   _final(callback) {
-    this.#processedBytes = this.#buffer.length;
+    this.#processedBytes += this.#lookbehindSize;
     callback();
   }
 
-  #search() {
-    const buffer = this.#buffer;
+  #search(chunk) {
+    const buffer = Buffer.concat([
+      this.#lookbehind.subarray(0, this.#lookbehindSize),
+      chunk,
+    ]);
+
     const pattern = this.#pattern;
     const patternLength = pattern.length;
+
     const difference = buffer.length - patternLength;
 
     if (difference < 0) {
+      this.#lookbehind.set(buffer);
+      this.#lookbehindSize = buffer.length;
       return;
     }
 
-    const table = this.#table;
     const processedBytes = this.#processedBytes;
+    const patternTable = this.#patternTable;
     const patternLastIndex = patternLength - 1;
 
-    for (let i = processedBytes; i <= difference; ) {
+    for (let i = 0; i <= difference; ) {
       let j = patternLastIndex;
 
       while (j !== -1 && buffer[i + j] === pattern[j]) {
@@ -60,23 +68,47 @@ const Match = class extends Writable {
       }
 
       if (j === -1) {
-        this.emit("match", i);
+        ++this.#matches;
+        this.#matchIndex = processedBytes + i;
+        this.emit("match", this.#matchIndex);
         i += patternLength;
         continue;
       }
 
-      i += table[buffer[patternLength + i]];
+      i += patternTable[buffer[patternLength + i]];
     }
 
-    this.#processedBytes = difference + 1;
+    if (this.#matchIndex === difference) {
+      this.#lookbehindSize = 0;
+      this.#processedBytes += buffer.length;
+      return;
+    }
+
+    this.#lookbehindSize = this.#lookbehind.length;
+    this.#processedBytes += difference + 1;
+    this.#lookbehind.set(buffer.subarray(difference + 1));
+  }
+
+  get pattern() {
+    return this.#pattern.toString();
+  }
+
+  get lookbehind() {
+    return Buffer.from(
+      this.#lookbehind.subarray(0, this.#lookbehindSize),
+    ).toString();
   }
 
   get processedBytes() {
     return this.#processedBytes;
   }
 
-  get buffer() {
-    return this.#buffer;
+  get matches() {
+    return this.#matches;
+  }
+
+  get matchIndex() {
+    return this.#matchIndex;
   }
 
   static buildTable(pattern) {

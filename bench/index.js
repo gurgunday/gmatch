@@ -48,11 +48,9 @@ bench
     });
   });
 
-bench
-  .run()
-  .then(() => {
-    console.table(bench.table());
-    console.warn("gmatch matches:", gmatchMatches);
-    console.warn("streamsearch matches:", streamsearchMatches);
-  })
-  .catch(console.error);
+await bench.warmup();
+await bench.run();
+
+console.table(bench.table());
+console.warn("gmatch matches:", gmatchMatches);
+console.warn("streamsearch matches:", streamsearchMatches);
