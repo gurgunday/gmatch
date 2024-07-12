@@ -2,8 +2,8 @@ import { Writable } from "node:stream";
 import { Buffer } from "node:buffer";
 
 const Match = class extends Writable {
-  #matchIndex = -1;
-  #matches = 0;
+  #index = -1;
+  #count = 0;
   #processedBytes = 0;
   #lookbehindSize = 0;
   #lookbehind;
@@ -68,9 +68,9 @@ const Match = class extends Writable {
       }
 
       if (j === -1) {
-        ++this.#matches;
-        this.#matchIndex = processedBytes + i;
-        this.emit("match", this.#matchIndex);
+        ++this.#count;
+        this.#index = processedBytes + i;
+        this.emit("match", this.#index);
         i += patternLength;
         continue;
       }
@@ -78,7 +78,7 @@ const Match = class extends Writable {
       i += table[buffer[patternLength + i]];
     }
 
-    if (this.#matchIndex === difference) {
+    if (this.#index === difference) {
       this.#lookbehindSize = 0;
       this.#processedBytes += buffer.length;
       return;
@@ -103,12 +103,12 @@ const Match = class extends Writable {
     return this.#processedBytes;
   }
 
-  get matches() {
-    return this.#matches;
+  get count() {
+    return this.#count;
   }
 
-  get matchIndex() {
-    return this.#matchIndex;
+  get index() {
+    return this.#index;
   }
 
   static table(pattern) {
