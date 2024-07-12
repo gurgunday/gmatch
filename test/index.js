@@ -262,7 +262,7 @@ test("short writes /2", async () => {
 
   search.write("t");
   assert.equal(search.processedBytes, 4);
-  assert.equal(search.lastMatchIndex, 0);
+  assert.equal(search.matchIndex, 0);
   assert.equal(search.matches, 1);
 });
 
