@@ -51,8 +51,8 @@ const Match = class extends Writable {
     const difference = buffer.length - patternLength;
 
     if (difference < 0) {
-      this.#lookbehind.set(buffer);
       this.#lookbehindSize = buffer.length;
+      this.#lookbehind.set(buffer);
       return;
     }
 
@@ -79,14 +79,14 @@ const Match = class extends Writable {
     }
 
     if (this.#index === difference) {
-      this.#lookbehindSize = 0;
       this.#processedBytes += buffer.length;
+      this.#lookbehindSize = 0;
       return;
     }
 
-    this.#lookbehindSize = this.#lookbehind.length;
     this.#processedBytes += difference + 1;
     this.#lookbehind.set(buffer.subarray(difference + 1));
+    this.#lookbehindSize = this.#lookbehind.length;
   }
 
   get pattern() {
