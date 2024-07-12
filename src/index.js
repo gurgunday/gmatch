@@ -79,24 +79,18 @@ const Match = class extends Writable {
     }
 
     if (this.#index === difference) {
-      this.#processedBytes += buffer.length;
       this.#lookbehindSize = 0;
+      this.#processedBytes += buffer.length;
       return;
     }
 
-    this.#processedBytes += difference + 1;
-    this.#lookbehind.set(buffer.subarray(difference + 1));
     this.#lookbehindSize = this.#lookbehind.length;
+    this.#lookbehind.set(buffer.subarray(difference + 1));
+    this.#processedBytes += difference + 1;
   }
 
   get pattern() {
     return this.#pattern.toString();
-  }
-
-  get lookbehind() {
-    return Buffer.from(
-      this.#lookbehind.subarray(0, this.#lookbehindSize),
-    ).toString();
   }
 
   get processedBytes() {

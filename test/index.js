@@ -255,7 +255,6 @@ test("short writes /2", async () => {
 
   assert.deepEqual(matches, []);
   assert.equal(search.processedBytes, 0);
-  assert.equal(search.lookbehind, "tes");
 
   search.write("t");
   assert.equal(search.processedBytes, 4);
