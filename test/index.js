@@ -263,6 +263,11 @@ test("short writes /2", async () => {
   assert.equal(search.processedBytes, 4);
   assert.equal(search.index, 0);
   assert.equal(search.count, 1);
+
+  search.write("ttt");
+  assert.equal(search.processedBytes, 8);
+  assert.equal(search.index, 0);
+  assert.equal(search.count, 1);
 });
 
 test("Buffer writes", async () => {
