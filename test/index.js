@@ -235,13 +235,13 @@ test("short writes", async () => {
   search.write("s");
 
   assert.deepEqual(matches, []);
-  assert.equal(search.processedBytes, 0);
+  assert.equal(search.searchStartPosition, 0);
 
   search.write("sss");
-  assert.equal(search.processedBytes, 1);
+  assert.equal(search.searchStartPosition, 1);
 });
 
-test("short writes /2", async () => {
+test("short writes /2", () => {
   const search = new StreamingSearch("test");
   assert.equal(search.pattern, "test");
 
@@ -254,20 +254,36 @@ test("short writes /2", async () => {
   search.write("tes");
 
   assert.deepEqual(matches, []);
-  assert.equal(search.processedBytes, 0);
+  assert.equal(search.searchStartPosition, 0);
 
   search.write("t");
-  assert.equal(search.processedBytes, 4);
+  assert.equal(search.searchStartPosition, 4);
 
   search.write("t");
-  assert.equal(search.processedBytes, 4);
+  assert.equal(search.searchStartPosition, 4);
   assert.equal(search.index, 0);
   assert.equal(search.count, 1);
 
   search.write("ttt");
-  assert.equal(search.processedBytes, 8);
+  assert.equal(search.searchStartPosition, 5);
   assert.equal(search.index, 0);
   assert.equal(search.count, 1);
+});
+
+test("short writes /3", () => {
+  const search = new StreamingSearch("test");
+  assert.equal(search.pattern, "test");
+
+  const matches = [];
+
+  search.on("match", (m) => {
+    return matches.push(m);
+  });
+
+  search.write("testy");
+  assert.equal(search.searchStartPosition, 4);
+  assert.equal(search.searchStartPosition, 4);
+  assert.deepEqual(search.lookbehind, "y");
 });
 
 test("Buffer writes", async () => {
@@ -287,6 +303,6 @@ test("Buffer writes", async () => {
   });
 
   assert.deepEqual(matches, [0, 4]);
-  assert.equal(search.processedBytes, 8);
+  assert.equal(search.searchStartPosition, 8);
   assert.equal(search.count, 2);
 });
