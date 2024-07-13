@@ -235,10 +235,10 @@ test("short writes", async () => {
   search.write("s");
 
   assert.deepEqual(matches, []);
-  assert.deepEqual(search.processedBytes, 0);
+  assert.equal(search.processedBytes, 0);
 
   search.write("sss");
-  assert.deepEqual(search.processedBytes, 1);
+  assert.equal(search.processedBytes, 1);
 });
 
 test("short writes /2", async () => {
