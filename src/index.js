@@ -46,10 +46,10 @@ const Match = class extends Writable {
       this.#lookbehind.subarray(0, this.#lookbehindSize),
       chunk,
     ]);
-
+    const table = this.#table;
     const pattern = this.#pattern;
     const patternLength = pattern.length;
-
+    const patternLastIndex = patternLength - 1;
     const difference = buffer.length - patternLength;
 
     if (difference < 0) {
@@ -57,10 +57,6 @@ const Match = class extends Writable {
       this.#lookbehind.set(buffer);
       return;
     }
-
-    const table = this.#table;
-    const processedBytes = this.#processedBytes;
-    const patternLastIndex = patternLength - 1;
 
     for (let i = 0; i <= difference; ) {
       let j = patternLastIndex;
@@ -71,7 +67,7 @@ const Match = class extends Writable {
 
       if (j === -1) {
         ++this.#count;
-        this.#index = processedBytes + i;
+        this.#index = this.#processedBytes + i;
         this.emit("match", this.#index);
         i += patternLength;
         continue;
