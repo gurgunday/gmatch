@@ -39,8 +39,9 @@ const Match = class extends Writable {
   #search(chunk) {
     const table = this.#table;
     const pattern = this.#pattern;
+    const patternLength = pattern.length;
     const totalLength = this.#lookbehindSize + chunk.length;
-    const difference = totalLength - pattern.length;
+    const difference = totalLength - patternLength;
 
     if (difference < 0) {
       this.#lookbehind.set(chunk, this.#lookbehindSize);
@@ -49,7 +50,7 @@ const Match = class extends Writable {
     }
 
     for (let i = 0; i <= difference; ) {
-      let j = pattern.length - 1;
+      let j = patternLength - 1;
 
       while (j !== -1 && this.#getByte(i + j, chunk) === pattern[j]) {
         --j;
@@ -59,15 +60,15 @@ const Match = class extends Writable {
         ++this.#count;
         this.#index = this.#searchStartPosition + i;
         this.emit("match", this.#index);
-        i += pattern.length;
+        i += patternLength;
         continue;
       }
 
-      i += table[this.#getByte(pattern.length + i, chunk)];
+      i += table[this.#getByte(patternLength + i, chunk)];
     }
 
     const processedBytes = difference + 1;
-    const processedBytes2 = this.#index + pattern.length;
+    const processedBytes2 = this.#index + patternLength;
 
     if (
       this.#index >= this.#searchStartPosition &&
@@ -93,7 +94,7 @@ const Match = class extends Writable {
       this.#lookbehind[i] = this.#getByte(processedBytes + i, chunk);
     }
 
-    this.#lookbehindSize = pattern.length - 1;
+    this.#lookbehindSize = patternLength - 1;
     this.#searchStartPosition += processedBytes;
   }
 
