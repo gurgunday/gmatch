@@ -5,11 +5,11 @@ import StreamSearch from "streamsearch";
 import { Match } from "../src/index.js";
 
 const bench = new Bench({ time: 2500 });
-const pattern = "example";
+const pattern = "exampleexampleexampleexampleexampleexampleexample";
 const longText =
-  `This is a long text with multiple occurrences of the word example. ` +
+  `This is a long text wiexampleexampleexampleexampleexampleexampleexampleth multiple asdasdoccurrences of theltiple asdasdoccurrences of theltiple asdasdoccurrences of theltiple asdasdoccurrences of the word example. ` +
   `It repeats the word example several times to ensure we have enough ${"data for the benchmark. Here's another example.".repeat(
-    1000,
+    10,
   )}`;
 
 let gmatchMatches;
@@ -25,11 +25,10 @@ bench
       });
       search.write(longText);
       search.write(longText);
+      search.write("great");
       search.write(longText);
-      search.end(() => {
-        gmatchMatches = matches.length;
-        resolve(matches);
-      });
+      gmatchMatches = matches.length;
+      resolve(matches);
     });
   })
   .add("streamsearch", () => {
@@ -42,6 +41,7 @@ bench
       });
       search.push(longText);
       search.push(longText);
+      search.push("great");
       search.push(longText);
       streamsearchMatches = matches.length;
       resolve(matches);

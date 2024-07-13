@@ -225,7 +225,7 @@ test("empty writes", async () => {
   assert.deepEqual(matches, [0]);
 });
 
-test("short writes", async () => {
+test("short writes", () => {
   const search = new StreamingSearch("test");
   const matches = [];
   search.on("match", (m) => {
