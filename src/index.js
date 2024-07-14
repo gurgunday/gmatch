@@ -44,7 +44,6 @@ const Match = class extends Writable {
     const lookbehind = this.#lookbehind;
     const totalLength = this.#lookbehindSize + chunk.length;
     const difference = totalLength - patternLength;
-    const processedBytes = difference + 1;
 
     if (difference < 0) {
       lookbehind.set(chunk, this.#lookbehindSize);
@@ -69,6 +68,8 @@ const Match = class extends Writable {
 
       i += table[this.#getByte(patternLength + i, chunk)];
     }
+
+    const processedBytes = difference + 1;
 
     if (this.#index >= this.#searchStartPosition) {
       const processedBytes2 =
