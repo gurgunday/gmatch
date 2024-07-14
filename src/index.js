@@ -81,7 +81,7 @@ const Match = class extends Writable {
       }
 
       for (let i = 0; i !== this.#lookbehind.length; ++i) {
-        this.#lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
+        this.#lookbehind[i] = chunk[processedBytes2 + i];
       }
 
       this.#lookbehindSize = totalLength - processedBytes2;
