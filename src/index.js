@@ -41,11 +41,13 @@ const Match = class extends Writable {
     const pattern = this.#pattern;
     const patternLength = pattern.length;
     const patternLastIndex = patternLength - 1;
+    const lookbehind = this.#lookbehind;
     const totalLength = this.#lookbehindSize + chunk.length;
     const difference = totalLength - patternLength;
+    const processedBytes = difference + 1;
 
     if (difference < 0) {
-      this.#lookbehind.set(chunk, this.#lookbehindSize);
+      lookbehind.set(chunk, this.#lookbehindSize);
       this.#lookbehindSize = totalLength;
       return;
     }
@@ -68,21 +70,13 @@ const Match = class extends Writable {
       i += table[this.#getByte(patternLength + i, chunk)];
     }
 
-    const processedBytes = difference + 1;
-
     if (this.#index >= this.#searchStartPosition) {
       const processedBytes2 =
-        this.#index + patternLength - this.#searchStartPosition;
+        this.#index - this.#searchStartPosition + patternLength;
 
       if (processedBytes2 > processedBytes) {
-        if (processedBytes2 === totalLength) {
-          this.#lookbehindSize = 0;
-          this.#searchStartPosition += totalLength;
-          return;
-        }
-
         for (let i = 0; processedBytes2 + i !== totalLength; ++i) {
-          this.#lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
+          lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
         }
 
         this.#lookbehindSize = totalLength - processedBytes2;
@@ -92,8 +86,8 @@ const Match = class extends Writable {
       }
     }
 
-    for (let i = 0; i !== this.#lookbehind.length; ++i) {
-      this.#lookbehind[i] = this.#getByte(processedBytes + i, chunk);
+    for (let i = 0; i !== lookbehind.length; ++i) {
+      lookbehind[i] = this.#getByte(processedBytes + i, chunk);
     }
 
     this.#lookbehindSize = patternLastIndex;
@@ -110,10 +104,8 @@ const Match = class extends Writable {
     return this.#pattern.toString();
   }
 
-  get lookbehind() {
-    return Buffer.from(
-      this.#lookbehind.subarray(0, this.#lookbehindSize),
-    ).toString();
+  get lookbehindSize() {
+    return this.#lookbehindSize;
   }
 
   get searchStartPosition() {

@@ -283,7 +283,7 @@ test("short writes /3", () => {
   search.write("testy");
   assert.equal(search.searchStartPosition, 4);
   assert.equal(search.searchStartPosition, 4);
-  assert.deepEqual(search.lookbehind, "y");
+  assert.deepEqual(search.lookbehindSize, 1);
 });
 
 test("short writes /3", () => {
@@ -298,7 +298,7 @@ test("short writes /3", () => {
 
   search.write("testtesttesttesttesttesttesttesttestwoahman");
   assert.equal(search.searchStartPosition, 36);
-  assert.equal(search.lookbehind, "woahman");
+  assert.equal(search.lookbehindSize, 7);
   assert.equal(search.count, 1);
   assert.deepEqual(matches, [0]);
 });
@@ -316,7 +316,7 @@ test("short writes /3", () => {
   search.write("test");
   search.write("ttt");
   assert.equal(search.searchStartPosition, 5);
-  assert.equal(search.lookbehind, "tt");
+  assert.equal(search.lookbehindSize, 2);
   assert.equal(search.count, 1);
   assert.deepEqual(matches, [0]);
 });
