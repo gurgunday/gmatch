@@ -286,6 +286,23 @@ test("short writes /3", () => {
   assert.deepEqual(search.lookbehind, "y");
 });
 
+test("short writes /3", () => {
+  const search = new StreamingSearch("testtesttesttesttesttesttesttesttest");
+  assert.equal(search.pattern, "testtesttesttesttesttesttesttesttest");
+
+  const matches = [];
+
+  search.on("match", (m) => {
+    return matches.push(m);
+  });
+
+  search.write("testtesttesttesttesttesttesttesttestwoahman");
+  assert.equal(search.searchStartPosition, 36);
+  assert.equal(search.lookbehind, "woahman");
+  assert.equal(search.count, 1);
+  assert.deepEqual(matches, [0]);
+});
+
 test("Buffer writes", async () => {
   const search = new StreamingSearch("test");
   const matches = [];
