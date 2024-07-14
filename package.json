@@ -4,7 +4,7 @@
   "author": "Gürgün Dayıoğlu",
   "license": "MIT",
   "version": "0.4.0",
-  "type": "module",
+  "type": "commonjs",
   "main": "./src/index.js",
   "exports": "./src/index.js",
   "engines": {

@@ -1,5 +1,7 @@
-import { Writable } from "node:stream";
-import { Buffer } from "node:buffer";
+"use strict";
+
+const { Writable } = require("node:stream");
+const { Buffer } = require("node:buffer");
 
 const Match = class extends Writable {
   #index = -1;
@@ -135,4 +137,4 @@ const Match = class extends Writable {
   }
 };
 
-export { Match };
+module.exports.Match = Match;

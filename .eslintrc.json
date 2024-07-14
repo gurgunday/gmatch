@@ -1,4 +1,5 @@
 {
   "root": true,
-  "extends": ["plugin:grules/all"]
+  "extends": ["plugin:grules/all"],
+  "env": { "node": true }
 }

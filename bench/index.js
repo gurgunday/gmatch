@@ -1,8 +1,10 @@
 /* eslint-disable unicorn/no-array-push-push */
-import { Bench } from "tinybench";
 
-import StreamSearch from "streamsearch";
-import { Match } from "../src/index.js";
+"use strict";
+
+const { Bench } = require("tinybench");
+const { Match } = require("../src/index.js");
+const StreamSearch = require("streamsearch");
 
 const bench = new Bench({ time: 2500 });
 const pattern = "example";
@@ -48,9 +50,11 @@ bench
     });
   });
 
-await bench.warmup();
-await bench.run();
+(async () => {
+  await bench.warmup();
+  await bench.run();
 
-console.table(bench.table());
-console.warn("gmatch matches:", gmatchMatches);
-console.warn("streamsearch matches:", streamsearchMatches);
+  console.table(bench.table());
+  console.warn("gmatch matches:", gmatchMatches);
+  console.warn("streamsearch matches:", streamsearchMatches);
+})();
