@@ -4,7 +4,7 @@ import { Buffer } from "node:buffer";
 const Match = class extends Writable {
   #index = -1;
   #count = 0;
-  #processedBytes = 0;
+  #searchStartPosition = 0;
   #lookbehindSize = 0;
   #lookbehind;
   #table;
@@ -36,63 +36,83 @@ const Match = class extends Writable {
     callback();
   }
 
-  _final(callback) {
-    this.#processedBytes += this.#lookbehindSize;
-    callback();
-  }
-
   #search(chunk) {
-    const buffer = Buffer.concat([
-      this.#lookbehind.subarray(0, this.#lookbehindSize),
-      chunk,
-    ]);
     const table = this.#table;
     const pattern = this.#pattern;
     const patternLength = pattern.length;
     const patternLastIndex = patternLength - 1;
-    const difference = buffer.length - patternLength;
+    const lookbehind = this.#lookbehind;
+    const totalLength = this.#lookbehindSize + chunk.length;
+    const difference = totalLength - patternLength;
 
     if (difference < 0) {
-      this.#lookbehindSize = buffer.length;
-      this.#lookbehind.set(buffer);
+      lookbehind.set(chunk, this.#lookbehindSize);
+      this.#lookbehindSize = totalLength;
       return;
     }
 
     for (let i = 0; i <= difference; ) {
       let j = patternLastIndex;
 
-      while (j !== -1 && buffer[i + j] === pattern[j]) {
+      while (j !== -1 && this.#getByte(i + j, chunk) === pattern[j]) {
         --j;
       }
 
       if (j === -1) {
         ++this.#count;
-        this.#index = this.#processedBytes + i;
+        this.#index = this.#searchStartPosition + i;
         this.emit("match", this.#index);
         i += patternLength;
         continue;
       }
 
-      i += table[buffer[patternLength + i]];
+      i += table[this.#getByte(patternLength + i, chunk)];
     }
 
-    if (this.#index === difference) {
-      this.#lookbehindSize = 0;
-      this.#processedBytes += buffer.length;
-      return;
+    const processedBytes = difference + 1;
+
+    if (this.#index >= this.#searchStartPosition) {
+      const processedBytes2 =
+        this.#index - this.#searchStartPosition + patternLength;
+
+      if (processedBytes2 > processedBytes) {
+        for (let i = 0; processedBytes2 + i !== totalLength; ++i) {
+          lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
+        }
+
+        this.#lookbehindSize = totalLength - processedBytes2;
+        this.#searchStartPosition += processedBytes2;
+
+        return;
+      }
+    }
+
+    const lookbehindLength = lookbehind.length;
+
+    for (let i = 0; i !== lookbehindLength; ++i) {
+      lookbehind[i] = this.#getByte(processedBytes + i, chunk);
     }
 
     this.#lookbehindSize = patternLastIndex;
-    this.#lookbehind.set(buffer.subarray(difference + 1));
-    this.#processedBytes += difference + 1;
+    this.#searchStartPosition += processedBytes;
+  }
+
+  #getByte(index, chunk) {
+    return index < this.#lookbehindSize
+      ? this.#lookbehind[index]
+      : chunk[index - this.#lookbehindSize];
   }
 
   get pattern() {
     return this.#pattern.toString();
   }
 
-  get processedBytes() {
-    return this.#processedBytes;
+  get lookbehindSize() {
+    return this.#lookbehindSize;
+  }
+
+  get searchStartPosition() {
+    return this.#searchStartPosition;
   }
 
   get count() {
