@@ -69,31 +69,27 @@ const Match = class extends Writable {
     }
 
     const processedBytes = difference + 1;
-    const processedBytes2 =
-      this.#index + patternLength - this.#searchStartPosition;
 
-    if (
-      this.#index >= this.#searchStartPosition &&
-      processedBytes2 > processedBytes
-    ) {
-      if (processedBytes2 === totalLength) {
-        this.#lookbehindSize = 0;
-        this.#searchStartPosition += totalLength;
+    if (this.#index >= this.#searchStartPosition) {
+      const processedBytes2 =
+        this.#index + patternLength - this.#searchStartPosition;
+
+      if (processedBytes2 > processedBytes) {
+        if (processedBytes2 === totalLength) {
+          this.#lookbehindSize = 0;
+          this.#searchStartPosition += totalLength;
+          return;
+        }
+
+        for (let i = 0; processedBytes2 + i !== totalLength; ++i) {
+          this.#lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
+        }
+
+        this.#lookbehindSize = totalLength - processedBytes2;
+        this.#searchStartPosition += processedBytes2;
+
         return;
       }
-
-      for (let i = 0; i + processedBytes !== totalLength; ++i) {
-        this.#lookbehind[i] = chunk[processedBytes2 + i];
-      }
-
-      console.warn(Buffer.from(this.#lookbehind).toString());
-
-      this.#lookbehindSize = totalLength - processedBytes2;
-      this.#searchStartPosition += processedBytes2;
-
-      console.warn(this.#lookbehindSize, this.#searchStartPosition);
-
-      return;
     }
 
     for (let i = 0; i !== this.#lookbehind.length; ++i) {

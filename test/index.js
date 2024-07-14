@@ -303,6 +303,24 @@ test("short writes /3", () => {
   assert.deepEqual(matches, [0]);
 });
 
+test("short writes /3", () => {
+  const search = new StreamingSearch("testt");
+  assert.equal(search.pattern, "testt");
+
+  const matches = [];
+
+  search.on("match", (m) => {
+    return matches.push(m);
+  });
+
+  search.write("test");
+  search.write("ttt");
+  assert.equal(search.searchStartPosition, 5);
+  assert.equal(search.lookbehind, "tt");
+  assert.equal(search.count, 1);
+  assert.deepEqual(matches, [0]);
+});
+
 test("Buffer writes", async () => {
   const search = new StreamingSearch("test");
   const matches = [];
