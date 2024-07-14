@@ -87,7 +87,9 @@ const Match = class extends Writable {
       }
     }
 
-    for (let i = 0; i !== lookbehind.length; ++i) {
+    const lookbehindLength = lookbehind.length;
+
+    for (let i = 0; i !== lookbehindLength; ++i) {
       lookbehind[i] = this.#getByte(processedBytes + i, chunk);
     }
 
