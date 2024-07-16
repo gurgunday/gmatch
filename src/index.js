@@ -78,20 +78,20 @@ const Match = class extends Writable {
         this.#index - this.#searchStartPosition + patternLength;
 
       if (processedBytes2 > processedBytes) {
-        for (let i = 0; processedBytes2 + i !== totalLength; ++i) {
+        const patternLastIndex2 = totalLength - processedBytes2;
+
+        for (let i = 0; i !== patternLastIndex2; ++i) {
           lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
         }
 
-        this.#lookbehindSize = totalLength - processedBytes2;
+        this.#lookbehindSize = patternLastIndex2;
         this.#searchStartPosition += processedBytes2;
 
         return;
       }
     }
 
-    const lookbehindLength = lookbehind.length;
-
-    for (let i = 0; i !== lookbehindLength; ++i) {
+    for (let i = 0; i !== patternLastIndex; ++i) {
       lookbehind[i] = this.#getByte(processedBytes + i, chunk);
     }
 
