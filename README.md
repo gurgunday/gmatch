@@ -1,5 +1,9 @@
 streamin**gmatch** lets you search for a pattern in a stream, as fast as JavaScriptly possible.
 
+`string.indexOf()` is fine, but what if the data is coming in chunks and a search needs to be done with constant memory usage?
+
+![gmatch.gif](./gmatch.gif)
+
 ## Installation
 
 ```sh
