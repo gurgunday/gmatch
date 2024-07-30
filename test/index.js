@@ -287,7 +287,7 @@ test("short writes /3", () => {
   assert.deepEqual(search.lookbehindSize, 1);
 });
 
-test("short writes /3", () => {
+test("short writes /4", () => {
   const search = new StreamingSearch("testtesttesttesttesttesttesttesttest");
   assert.equal(search.pattern, "testtesttesttesttesttesttesttesttest");
 
@@ -304,7 +304,7 @@ test("short writes /3", () => {
   assert.deepEqual(matches, [0]);
 });
 
-test("short writes /3", () => {
+test("short writes /5", () => {
   const search = new StreamingSearch("testt");
   assert.equal(search.pattern, "testt");
 
