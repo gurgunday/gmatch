@@ -66,7 +66,7 @@ matcher.end();
 
 ## Benchmarks
 
-Here are the benchmark results comparing gmatch with streamsearch:
+Latest results:
 
 ```sh
 ┌─────────┬────────────────┬──────────┬────────────────────┬──────────┬─────────┐
