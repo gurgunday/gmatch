@@ -1,7 +1,16 @@
 "use strict";
 
 const { Writable } = require("node:stream");
-const { Buffer } = require("node:buffer");
+
+const bufferFrom = (string) => {
+  const buffer = new Uint8Array(string.length);
+
+  for (let i = 0; i !== string.length; ++i) {
+    buffer[i] = string.charCodeAt(i);
+  }
+
+  return buffer;
+};
 
 const Match = class extends Writable {
   #index = -1;
@@ -28,7 +37,7 @@ const Match = class extends Writable {
     }
 
     super(options);
-    this.#pattern = Buffer.from(pattern);
+    this.#pattern = bufferFrom(pattern);
     this.#table = Match.table(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
@@ -106,7 +115,7 @@ const Match = class extends Writable {
   }
 
   get pattern() {
-    return this.#pattern.toString();
+    return String.fromCharCode.apply(null, this.#pattern);
   }
 
   get lookbehindSize() {
@@ -126,11 +135,10 @@ const Match = class extends Writable {
   }
 
   static table(pattern) {
-    const patternLength = pattern.length;
-    const table = new Uint8Array(256).fill(patternLength + 1);
+    const table = new Uint8Array(256).fill(pattern.length + 1);
 
-    for (let i = 0; i !== patternLength; ++i) {
-      table[pattern[i]] = patternLength - i;
+    for (let i = 0; i !== pattern.length; ++i) {
+      table[pattern[i]] = pattern.length - i;
     }
 
     return table;
