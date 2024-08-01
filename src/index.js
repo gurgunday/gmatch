@@ -1,7 +1,5 @@
 "use strict";
 
-const { Writable } = require("node:stream");
-
 const bufferFrom = (string) => {
   const buffer = new Uint8Array(string.length);
 
@@ -12,7 +10,7 @@ const bufferFrom = (string) => {
   return buffer;
 };
 
-const Match = class extends Writable {
+const Match = class {
   #index = -1;
   #count = 0;
   #searchStartPosition = 0;
@@ -20,14 +18,19 @@ const Match = class extends Writable {
   #lookbehind;
   #table;
   #pattern;
+  #callback;
 
   /**
    * @param {string} pattern - The pattern to search for.
-   * @param {object} [options] - The options for the Writable stream.
+   * @param {Function} callback - The callback function to be called when there's a match.
    * @throws {TypeError}
    * @throws {RangeError}
    */
-  constructor(pattern, options) {
+  constructor(pattern, callback) {
+    if (typeof callback !== "function") {
+      throw new TypeError("Callback must be a function");
+    }
+
     if (typeof pattern !== "string") {
       throw new TypeError("Pattern must be a string");
     }
@@ -36,33 +39,32 @@ const Match = class extends Writable {
       throw new RangeError("Pattern length must be between 1 and 256");
     }
 
-    super(options);
+    this.#callback = callback;
     this.#pattern = bufferFrom(pattern);
     this.#table = Match.table(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
-  _write(chunk, encoding, callback) {
-    this.#search(chunk);
-    callback();
+  write(chunk) {
+    this.#search(chunk instanceof Uint8Array ? chunk : bufferFrom(`${chunk}`));
   }
 
   #search(chunk) {
     const table = this.#table;
     const pattern = this.#pattern;
     const lookbehind = this.#lookbehind;
-    const totalLength = this.#lookbehindSize + chunk.length;
-    const difference = totalLength - pattern.length;
+    const lengthTotal = this.#lookbehindSize + chunk.length;
+    const lengthDifference = lengthTotal - pattern.length;
 
-    if (difference < 0) {
+    if (lengthDifference < 0) {
       lookbehind.set(chunk, this.#lookbehindSize);
-      this.#lookbehindSize = totalLength;
+      this.#lookbehindSize = lengthTotal;
       return;
     }
 
     const patternLastIndex = pattern.length - 1;
 
-    for (let i = 0; i <= difference; ) {
+    for (let i = 0; i <= lengthDifference; ) {
       let j = patternLastIndex;
 
       while (j !== -1 && this.#getByte(i + j, chunk) === pattern[j]) {
@@ -72,22 +74,22 @@ const Match = class extends Writable {
       if (j === -1) {
         ++this.#count;
         this.#index = this.#searchStartPosition + i;
-        this.emit("match", this.#index);
+        this.#callback(this.#index);
         i += pattern.length;
         continue;
       }
 
-      i += table[this.#getByte(pattern.length + i, chunk)];
+      i += table[this.#getByte(i + pattern.length, chunk)];
     }
 
-    const processedBytes = difference + 1;
+    const processedBytes = lengthDifference + 1;
 
     if (this.#index >= this.#searchStartPosition) {
       const processedBytes2 =
         this.#index - this.#searchStartPosition + pattern.length;
 
       if (processedBytes2 > processedBytes) {
-        const patternLastIndex2 = totalLength - processedBytes2;
+        const patternLastIndex2 = lengthTotal - processedBytes2;
 
         for (let i = 0; i !== patternLastIndex2; ++i) {
           lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);

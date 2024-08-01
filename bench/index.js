@@ -19,35 +19,30 @@ let streamsearchMatches;
 
 bench
   .add("gmatch", () => {
-    return new Promise((resolve) => {
-      const search = new Match(pattern);
-      const matches = [];
-      search.on("match", (m) => {
-        return matches.push(m);
-      });
-      search.write(longText);
-      search.write(longText);
-      search.write(longText);
-      search.end(() => {
-        gmatchMatches = matches.length;
-        resolve(matches);
-      });
+    const matches = [];
+    const search = new Match(pattern, (index) => {
+      matches.push(index);
     });
+
+    search.write(longText);
+    search.write(longText);
+    search.write(longText);
+
+    gmatchMatches = matches.length;
   })
   .add("streamsearch", () => {
-    return new Promise((resolve) => {
-      const matches = [];
-      const search = new StreamSearch(pattern, (isMatch, data, start) => {
-        if (isMatch) {
-          matches.push(start);
-        }
-      });
-      search.push(longText);
-      search.push(longText);
-      search.push(longText);
-      streamsearchMatches = matches.length;
-      resolve(matches);
+    const matches = [];
+    const search = new StreamSearch(pattern, (isMatch, data, start) => {
+      if (isMatch) {
+        matches.push(start);
+      }
     });
+
+    search.push(longText);
+    search.push(longText);
+    search.push(longText);
+
+    streamsearchMatches = matches.length;
   });
 
 (async () => {
