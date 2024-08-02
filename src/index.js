@@ -16,7 +16,7 @@ const Match = class {
   #searchStartPosition = 0;
   #lookbehindSize = 0;
   #lookbehind;
-  #table;
+  #skip;
   #pattern;
   #callback;
 
@@ -41,7 +41,7 @@ const Match = class {
 
     this.#callback = callback;
     this.#pattern = bufferFrom(pattern);
-    this.#table = Match.table(this.#pattern);
+    this.#skip = Match.skip(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
@@ -50,7 +50,7 @@ const Match = class {
   }
 
   #search(chunk) {
-    const table = this.#table;
+    const skip = this.#skip;
     const pattern = this.#pattern;
     const lookbehind = this.#lookbehind;
     const lengthTotal = this.#lookbehindSize + chunk.length;
@@ -79,7 +79,7 @@ const Match = class {
         continue;
       }
 
-      i += table[this.#getByte(i + pattern.length, chunk)];
+      i += skip[this.#getByte(i + pattern.length, chunk)];
     }
 
     const processedBytes = lengthDifference + 1;
@@ -136,14 +136,14 @@ const Match = class {
     return this.#index;
   }
 
-  static table(pattern) {
-    const table = new Uint8Array(256).fill(pattern.length + 1);
+  static skip(pattern) {
+    const skip = new Uint8Array(256).fill(pattern.length + 1);
 
     for (let i = 0; i !== pattern.length; ++i) {
-      table[pattern[i]] = pattern.length - i;
+      skip[pattern[i]] = pattern.length - i;
     }
 
-    return table;
+    return skip;
   }
 };
 
