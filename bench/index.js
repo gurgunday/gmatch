@@ -1,7 +1,5 @@
 /* eslint-disable unicorn/no-array-push-push */
 
-"use strict";
-
 import { Match } from "../src/index.js";
 import StreamSearch from "streamsearch";
 import { Bench } from "tinybench";

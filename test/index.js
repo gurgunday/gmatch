@@ -1,5 +1,3 @@
-"use strict";
-
 import { Match as StreamingSearch } from "../src/index.js";
 import { Buffer } from "node:buffer";
 import { test } from "node:test";
