@@ -1,12 +1,14 @@
-const bufferFromString = (string) => {
-  const buffer = new Uint8Array(string.length);
+const bufferFrom = globalThis.process?.versions?.node
+  ? globalThis.Buffer.from
+  : (string) => {
+      const buffer = new Uint8Array(string.length);
 
-  for (let i = 0; i !== string.length; ++i) {
-    buffer[i] = string.charCodeAt(i);
-  }
+      for (let i = 0; i !== string.length; ++i) {
+        buffer[i] = string.charCodeAt(i);
+      }
 
-  return buffer;
-};
+      return buffer;
+    };
 
 const bufferCompare = (buffer1, index1, buffer2, index2, length) => {
   for (let i = 0; i !== length; ++i) {
@@ -47,7 +49,7 @@ const Match = class {
     }
 
     this.#callback = callback;
-    this.#pattern = bufferFromString(pattern);
+    this.#pattern = bufferFrom(pattern);
     this.#skip = Match.#skipTable(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length);
   }
@@ -68,7 +70,7 @@ const Match = class {
 
   write(chunk) {
     if (!(chunk instanceof Uint8Array)) {
-      chunk = bufferFromString(String(chunk));
+      chunk = bufferFrom(String(chunk));
     }
 
     let result = -1;
