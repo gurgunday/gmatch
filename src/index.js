@@ -1,6 +1,4 @@
-"use strict";
-
-const bufferFrom = (string) => {
+const bufferFromString = (string) => {
   const buffer = new Uint8Array(string.length);
 
   for (let i = 0; i !== string.length; ++i) {
@@ -10,10 +8,19 @@ const bufferFrom = (string) => {
   return buffer;
 };
 
+const bufferCompare = (buffer1, index1, buffer2, index2, length) => {
+  for (let i = 0; i !== length; ++i) {
+    if (buffer1[index1 + i] !== buffer2[index2 + i]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 const Match = class {
-  #index = -1;
-  #count = 0;
-  #searchStartPosition = 0;
+  #bufferIndex = 0;
+  #matches = 0;
   #lookbehindSize = 0;
   #lookbehind;
   #skip;
@@ -28,123 +35,206 @@ const Match = class {
    */
   constructor(pattern, callback) {
     if (typeof callback !== "function") {
-      throw new TypeError("Callback must be a function");
+      throw new TypeError("Callback must be a Function");
     }
 
     if (typeof pattern !== "string") {
       throw new TypeError("Pattern must be a string");
     }
 
-    if (pattern.length === 0 || pattern.length >= 257) {
+    if (!pattern.length || pattern.length >= 257) {
       throw new RangeError("Pattern length must be between 1 and 256");
     }
 
     this.#callback = callback;
-    this.#pattern = bufferFrom(pattern);
-    this.#skip = Match.skip(this.#pattern);
-    this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
+    this.#pattern = bufferFromString(pattern);
+    this.#skip = Match.#skipTable(this.#pattern);
+    this.#lookbehind = new Uint8Array(this.#pattern.length);
+  }
+
+  reset() {
+    this.#matches = 0;
+    this.#lookbehindSize = 0;
+    this.#bufferIndex = 0;
+  }
+
+  destroy() {
+    if (this.#lookbehindSize) {
+      this.#callback(false, this.#lookbehind, null, 0, this.#lookbehindSize);
+    }
+
+    this.reset();
   }
 
   write(chunk) {
-    this.#search(chunk instanceof Uint8Array ? chunk : bufferFrom(`${chunk}`));
+    if (!(chunk instanceof Uint8Array)) {
+      chunk = bufferFromString(String(chunk));
+    }
+
+    let result = -1;
+    this.#bufferIndex = 0;
+
+    while (result !== chunk.length) {
+      result = this.#search(chunk);
+    }
+
+    return result;
   }
 
-  #search(chunk) {
-    const skip = this.#skip;
-    const pattern = this.#pattern;
-    const lookbehind = this.#lookbehind;
-    const lengthTotal = this.#lookbehindSize + chunk.length;
-    const lengthDifference = lengthTotal - pattern.length;
+  #search(buffer) {
+    let index = -this.#lookbehindSize;
+    const patternLastCharIndex = this.#pattern.length - 1;
+    const patternLastChar = this.#pattern[patternLastCharIndex];
+    const end = buffer.length - this.#pattern.length;
 
-    if (lengthDifference < 0) {
-      lookbehind.set(chunk, this.#lookbehindSize);
-      this.#lookbehindSize = lengthTotal;
-      return;
-    }
+    if (index < 0) {
+      while (index < 0 && index <= end) {
+        const nextIndex = index + patternLastCharIndex;
+        const char =
+          nextIndex < 0
+            ? this.#lookbehind[this.#lookbehindSize + nextIndex]
+            : buffer[nextIndex];
 
-    const patternLastIndex = pattern.length - 1;
+        if (
+          char === patternLastChar &&
+          this.#matchPattern(buffer, index, patternLastCharIndex)
+        ) {
+          ++this.#matches;
+          this.#lookbehindSize = 0;
 
-    for (let i = 0; i <= lengthDifference; ) {
-      let j = patternLastIndex;
+          if (index > 0) {
+            this.#callback(
+              true,
+              this.#lookbehind,
+              null,
+              0,
+              this.#lookbehindSize + index,
+            );
+          } else {
+            this.#callback(true, null, null, 0, 0);
+          }
 
-      while (j !== -1 && this.#getByte(i + j, chunk) === pattern[j]) {
-        --j;
-      }
+          this.#bufferIndex = index + this.#pattern.length;
 
-      if (j === -1) {
-        ++this.#count;
-        this.#index = this.#searchStartPosition + i;
-        this.#callback(this.#index);
-        i += pattern.length;
-        continue;
-      }
-
-      i += skip[this.#getByte(i + pattern.length, chunk)];
-    }
-
-    const processedBytes = lengthDifference + 1;
-
-    if (this.#index >= this.#searchStartPosition) {
-      const processedBytes2 =
-        this.#index - this.#searchStartPosition + pattern.length;
-
-      if (processedBytes2 > processedBytes) {
-        const patternLastIndex2 = lengthTotal - processedBytes2;
-
-        for (let i = 0; i !== patternLastIndex2; ++i) {
-          lookbehind[i] = this.#getByte(processedBytes2 + i, chunk);
+          return this.#bufferIndex;
         }
 
-        this.#lookbehindSize = patternLastIndex2;
-        this.#searchStartPosition += processedBytes2;
-
-        return;
+        index += this.#skip[char];
       }
+
+      while (
+        index < 0 &&
+        !this.#matchPattern(buffer, index, buffer.length - index)
+      ) {
+        ++index;
+      }
+
+      if (index < 0) {
+        const bytesToCutOff = this.#lookbehindSize + index;
+
+        if (bytesToCutOff > 0) {
+          this.#callback(false, this.#lookbehind, null, 0, bytesToCutOff);
+        }
+
+        this.#lookbehindSize -= bytesToCutOff;
+        this.#lookbehind.set(this.#lookbehind.subarray(bytesToCutOff));
+        this.#lookbehind.set(buffer, this.#lookbehindSize);
+        this.#lookbehindSize += buffer.length;
+        this.#bufferIndex = buffer.length;
+
+        return this.#bufferIndex;
+      }
+
+      this.#callback(false, this.#lookbehind, null, 0, this.#lookbehindSize);
+
+      this.#lookbehindSize = 0;
     }
 
-    for (let i = 0; i !== patternLastIndex; ++i) {
-      lookbehind[i] = this.#getByte(processedBytes + i, chunk);
+    index += this.#bufferIndex;
+    const patternFirstChar = this.#pattern[0];
+
+    while (index <= end) {
+      const char = buffer[index + patternLastCharIndex];
+
+      if (
+        char === patternLastChar &&
+        buffer[index] === patternFirstChar &&
+        bufferCompare(this.#pattern, 0, buffer, index, patternLastCharIndex)
+      ) {
+        ++this.#matches;
+
+        if (index > 0) {
+          this.#callback(true, null, buffer, this.#bufferIndex, index);
+        } else {
+          this.#callback(true, null, null, 0, 0);
+        }
+
+        this.#bufferIndex = index + this.#pattern.length;
+
+        return this.#bufferIndex;
+      }
+
+      index += this.#skip[char];
     }
 
-    this.#lookbehindSize = patternLastIndex;
-    this.#searchStartPosition += processedBytes;
-  }
-
-  #getByte(index, chunk) {
-    return index < this.#lookbehindSize
-      ? this.#lookbehind[index]
-      : chunk[index - this.#lookbehindSize];
-  }
-
-  get pattern() {
-    return String.fromCharCode.apply(null, this.#pattern);
-  }
-
-  get lookbehindSize() {
-    return this.#lookbehindSize;
-  }
-
-  get searchStartPosition() {
-    return this.#searchStartPosition;
-  }
-
-  get count() {
-    return this.#count;
-  }
-
-  get index() {
-    return this.#index;
-  }
-
-  static skip(pattern) {
-    const skip = new Uint8Array(256).fill(pattern.length + 1);
-
-    for (let i = 0; i !== pattern.length; ++i) {
-      skip[pattern[i]] = pattern.length - i;
+    while (
+      index < buffer.length &&
+      (buffer[index] !== patternFirstChar ||
+        !bufferCompare(buffer, index, this.#pattern, 0, buffer.length - index))
+    ) {
+      ++index;
     }
 
-    return skip;
+    if (index < buffer.length) {
+      this.#lookbehind.set(buffer.subarray(index));
+      this.#lookbehindSize = buffer.length - index;
+    }
+
+    if (index > 0) {
+      this.#callback(
+        false,
+        null,
+        buffer,
+        this.#bufferIndex,
+        index < buffer.length ? index : buffer.length,
+      );
+    }
+
+    this.#bufferIndex = buffer.length;
+
+    return this.#bufferIndex;
+  }
+
+  #matchPattern(buffer, index, length) {
+    for (let i = 0; i < length; ++i) {
+      const char =
+        index < 0
+          ? this.#lookbehind[this.#lookbehindSize + index]
+          : buffer[index];
+
+      if (char !== this.#pattern[i]) {
+        return false;
+      }
+
+      ++index;
+    }
+
+    return true;
+  }
+
+  get matches() {
+    return this.#matches;
+  }
+
+  static #skipTable(buffer) {
+    const skipTable = new Uint8Array(256).fill(buffer.length);
+
+    for (let i = 0, lastIndex = buffer.length - 1; i !== lastIndex; ++i) {
+      skipTable[buffer[i]] = lastIndex - i;
+    }
+
+    return skipTable;
   }
 };
 
-module.exports.Match = Match;
+export { Match };

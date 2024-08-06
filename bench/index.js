@@ -2,9 +2,9 @@
 
 "use strict";
 
-const { Bench } = require("tinybench");
-const { Match } = require("../src/index.js");
-const StreamSearch = require("streamsearch");
+import { Match } from "../src/index.js";
+import StreamSearch from "streamsearch";
+import { Bench } from "tinybench";
 
 const bench = new Bench({ time: 2500 });
 const pattern = "example";
@@ -20,8 +20,10 @@ let streamsearchMatches;
 bench
   .add("gmatch", () => {
     const matches = [];
-    const search = new Match(pattern, (index) => {
-      matches.push(index);
+    const search = new Match(pattern, (isMatch, data, start) => {
+      if (isMatch) {
+        matches.push(start);
+      }
     });
 
     search.write(longText);

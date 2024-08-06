@@ -1,8 +1,9 @@
 "use strict";
 
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const { Match: StreamingSearch } = require("../src/index.js");
+import { Match as StreamingSearch } from "../src/index.js";
+import { Buffer } from "node:buffer";
+import { test } from "node:test";
+import { assert } from "node:assert/strict";
 
 test("constructor throws error for invalid pattern", () => {
   assert.throws(
