@@ -73,8 +73,8 @@ const Match = class {
       chunk = bufferFrom(String(chunk));
     }
 
-    let result = -1;
     this.#bufferIndex = 0;
+    let result = -1;
 
     while (result !== chunk.length) {
       result = this.#search(chunk);
