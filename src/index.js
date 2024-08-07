@@ -86,7 +86,6 @@ const Match = class {
   #search(buffer) {
     let index = -this.#lookbehindSize;
     const patternLastCharIndex = this.#pattern.length - 1;
-    const patternLastChar = this.#pattern[patternLastCharIndex];
     const end = buffer.length - this.#pattern.length;
 
     if (index < 0) {
@@ -98,7 +97,7 @@ const Match = class {
             : buffer[nextIndex];
 
         if (
-          char === patternLastChar &&
+          char === this.#pattern[patternLastCharIndex] &&
           this.#matchPattern(buffer, index, patternLastCharIndex)
         ) {
           ++this.#matches;
@@ -153,14 +152,13 @@ const Match = class {
     }
 
     index += this.#bufferIndex;
-    const patternFirstChar = this.#pattern[0];
 
     while (index <= end) {
       const char = buffer[index + patternLastCharIndex];
 
       if (
-        char === patternLastChar &&
-        buffer[index] === patternFirstChar &&
+        char === this.#pattern[patternLastCharIndex] &&
+        buffer[index] === this.#pattern[0] &&
         bufferCompare(this.#pattern, 0, buffer, index, patternLastCharIndex)
       ) {
         ++this.#matches;
@@ -181,7 +179,7 @@ const Match = class {
 
     while (
       index < buffer.length &&
-      (buffer[index] !== patternFirstChar ||
+      (buffer[index] !== this.#pattern[0] ||
         !bufferCompare(buffer, index, this.#pattern, 0, buffer.length - index))
     ) {
       ++index;
