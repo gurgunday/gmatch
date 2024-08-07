@@ -51,7 +51,7 @@ const Match = class {
     this.#callback = callback;
     this.#pattern = bufferFrom(pattern);
     this.#skip = Match.#skipTable(this.#pattern);
-    this.#lookbehind = new Uint8Array(this.#pattern.length);
+    this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
   reset() {

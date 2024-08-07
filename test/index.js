@@ -1,7 +1,7 @@
 import { Match as StreamingSearch } from "../src/index.js";
 import { Buffer } from "node:buffer";
 import { test } from "node:test";
-import { assert } from "node:assert/strict";
+import assert from "node:assert/strict";
 
 test("constructor throws error for invalid pattern", () => {
   assert.throws(
