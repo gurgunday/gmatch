@@ -76,9 +76,9 @@ const Match = class {
     this.#bufferIndex = 0;
     let result = -1;
 
-    while (result !== chunk.length) {
+    do {
       result = this.#search(chunk);
-    }
+    } while (result !== chunk.length);
 
     return result;
   }
