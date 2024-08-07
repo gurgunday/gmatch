@@ -56,8 +56,8 @@ const Match = class {
 
   reset() {
     this.#matches = 0;
-    this.#lookbehindSize = 0;
     this.#bufferIndex = 0;
+    this.#lookbehindSize = 0;
   }
 
   destroy() {
