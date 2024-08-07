@@ -21,8 +21,8 @@ const bufferCompare = (buffer1, index1, buffer2, index2, length) => {
 };
 
 const Match = class {
-  #bufferIndex = 0;
   #matches = 0;
+  #bufferIndex = 0;
   #lookbehindSize = 0;
   #lookbehind;
   #skip;
