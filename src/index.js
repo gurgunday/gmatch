@@ -50,7 +50,7 @@ const Match = class {
 
     this.#callback = callback;
     this.#pattern = bufferFrom(pattern);
-    this.#skip = Match.#skipTable(this.#pattern);
+    this.#skip = Match.#table(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
@@ -62,7 +62,7 @@ const Match = class {
 
   destroy() {
     if (this.#lookbehindSize) {
-      this.#callback(false, this.#lookbehind, null, 0, this.#lookbehindSize);
+      this.#callback(false, 0, this.#lookbehindSize, this.#lookbehind, null);
     }
 
     this.reset();
@@ -70,7 +70,7 @@ const Match = class {
 
   write(chunk) {
     if (!(chunk instanceof Uint8Array)) {
-      chunk = bufferFrom(String(chunk));
+      chunk = bufferFrom(`${chunk}`);
     }
 
     this.#bufferIndex = 0;
@@ -106,13 +106,13 @@ const Match = class {
           if (index > 0) {
             this.#callback(
               true,
-              this.#lookbehind,
-              null,
               0,
               this.#lookbehindSize + index,
+              this.#lookbehind,
+              null,
             );
           } else {
-            this.#callback(true, null, null, 0, 0);
+            this.#callback(true, 0, 0, null, null);
           }
 
           this.#bufferIndex = index + this.#pattern.length;
@@ -134,7 +134,7 @@ const Match = class {
         const bytesToCutOff = this.#lookbehindSize + index;
 
         if (bytesToCutOff > 0) {
-          this.#callback(false, this.#lookbehind, null, 0, bytesToCutOff);
+          this.#callback(false, 0, bytesToCutOff, this.#lookbehind, null);
         }
 
         this.#lookbehindSize -= bytesToCutOff;
@@ -146,7 +146,7 @@ const Match = class {
         return this.#bufferIndex;
       }
 
-      this.#callback(false, this.#lookbehind, null, 0, this.#lookbehindSize);
+      this.#callback(false, 0, this.#lookbehindSize, this.#lookbehind, null);
 
       this.#lookbehindSize = 0;
     }
@@ -164,9 +164,9 @@ const Match = class {
         ++this.#matches;
 
         if (index > 0) {
-          this.#callback(true, null, buffer, this.#bufferIndex, index);
+          this.#callback(true, this.#bufferIndex, index, null, buffer);
         } else {
-          this.#callback(true, null, null, 0, 0);
+          this.#callback(true, 0, 0, null, null);
         }
 
         this.#bufferIndex = index + this.#pattern.length;
@@ -193,10 +193,10 @@ const Match = class {
     if (index > 0) {
       this.#callback(
         false,
-        null,
-        buffer,
         this.#bufferIndex,
         index < buffer.length ? index : buffer.length,
+        null,
+        buffer,
       );
     }
 
@@ -226,14 +226,14 @@ const Match = class {
     return this.#matches;
   }
 
-  static #skipTable(buffer) {
-    const skipTable = new Uint8Array(256).fill(buffer.length);
+  static #table(buffer) {
+    const table = new Uint8Array(256).fill(buffer.length);
 
     for (let i = 0, lastIndex = buffer.length - 1; i !== lastIndex; ++i) {
-      skipTable[buffer[i]] = lastIndex - i;
+      table[buffer[i]] = lastIndex - i;
     }
 
-    return skipTable;
+    return table;
   }
 };
 
