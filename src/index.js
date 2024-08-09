@@ -74,11 +74,11 @@ const Match = class {
     }
 
     this.#bufferIndex = 0;
-    let result = -1;
+    let result = 0;
 
-    do {
+    while (result !== chunk.length) {
       result = this.#search(chunk);
-    } while (result !== chunk.length);
+    }
 
     return result;
   }
