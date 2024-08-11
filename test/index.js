@@ -1,278 +1,254 @@
-"use strict";
+import { Match } from "../src/index.js";
+import { Buffer } from "node:buffer";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const { Match: StreamingSearch } = require("../src/index.js");
-
-test("constructor throws error for invalid pattern", () => {
-  assert.throws(
-    () => {
-      return new StreamingSearch("", () => {});
-    },
-    {
-      name: "RangeError",
-    },
-  );
-  assert.throws(
-    () => {
-      return new StreamingSearch(123, () => {});
-    },
-    {
-      name: "TypeError",
-    },
-  );
+test("Match constructor should create a Match instance with valid input", () => {
+  const match = new Match("test", () => {});
+  assert(match instanceof Match);
 });
 
-test("constructor throws error for invalid function", () => {
-  assert.throws(
-    () => {
-      return new StreamingSearch("test", null);
-    },
-    {
-      name: "TypeError",
-    },
-  );
+test("Match constructor should throw TypeError for non-function callback", () => {
+  assert.throws(() => {
+    return new Match("test", "not a function");
+  }, TypeError);
 });
 
-test("single write with immediate match", () => {
-  const matches = [];
-  const search = new StreamingSearch("test", (index) => {
-    matches.push(index);
+test("Match constructor should throw TypeError for non-string pattern", () => {
+  assert.throws(() => {
+    return new Match(123, () => {});
+  }, TypeError);
+});
+
+test("Match constructor should throw RangeError for empty pattern", () => {
+  assert.throws(() => {
+    return new Match("", () => {});
+  }, RangeError);
+});
+
+test("Match constructor should throw RangeError for pattern longer than 256 characters", () => {
+  const longPattern = "a".repeat(257);
+  assert.throws(() => {
+    return new Match(longPattern, () => {});
+  }, RangeError);
+});
+
+test("reset method should reset internal state", () => {
+  const match = new Match("test", () => {});
+  match.write("test");
+  assert.strictEqual(match.matches, 1);
+  match.reset();
+  assert.strictEqual(match.matches, 0);
+});
+
+test("destroy method should call callback with remaining data", (t, done) => {
+  const match = new Match("test", (isMatch, start, end, lookbehind) => {
+    if (!isMatch) {
+      assert.strictEqual(end, 3);
+      assert(lookbehind instanceof Uint8Array);
+      assert.deepStrictEqual(lookbehind, new Uint8Array([116, 101, 115]));
+      done();
+    }
+  });
+  match.write("tes");
+  match.destroy();
+});
+
+test("write method should find matches in a single write", (t, done) => {
+  let matches = 0;
+  const match = new Match("test", (isMatch) => {
+    if (isMatch) {
+      matches++;
+    }
+    if (matches === 2) {
+      done();
+    }
+  });
+  match.write("this is a test string with another test");
+});
+
+test("write method should find matches across multiple writes", (t, done) => {
+  let matches = 0;
+  const match = new Match("test", (isMatch) => {
+    if (isMatch) {
+      matches++;
+    }
+    if (matches === 2) {
+      done();
+    }
+  });
+  match.write("this is a te");
+  match.write("st string with another te");
+  match.write("st");
+});
+
+test("write method should handle Uint8Array input", (t, done) => {
+  const match = new Match("test", (isMatch) => {
+    if (isMatch) {
+      done();
+    }
+  });
+  match.write(new Uint8Array(Buffer.from("this is a test")));
+});
+
+test("matches property should return correct number of matches", () => {
+  const match = new Match("test", () => {});
+  match.write("test test test");
+  assert.strictEqual(match.matches, 3);
+});
+
+test("should handle pattern at the beginning of input", (t, done) => {
+  const match = new Match("test", (isMatch, start, end) => {
+    if (isMatch) {
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 0);
+      done();
+    }
+  });
+  match.write("test string");
+});
+
+test("should handle pattern at the end of input", (t, done) => {
+  const match = new Match("test", (isMatch, start, end) => {
+    if (isMatch) {
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 7);
+      done();
+    }
+  });
+  match.write("string test");
+});
+
+test("should handle overlapping patterns", (t, done) => {
+  let matches = 0;
+  const match = new Match("aa", (isMatch) => {
+    if (isMatch) {
+      matches++;
+    }
+    if (matches === 2) {
+      done();
+    }
+  });
+  match.write("aaaa");
+});
+
+test("should handle unicode characters", (t, done) => {
+  const match = new Match("🚀", (isMatch) => {
+    if (isMatch) {
+      done();
+    }
+  });
+  match.write("Hello 🌍🚀");
+});
+
+test("bufferCompare false", (t, done) => {
+  const match = new Match("great", (isMatch) => {
+    if (!isMatch) {
+      done();
+    }
+  });
+  match.write("gleat");
+});
+
+test("lookbehind match", (t, done) => {
+  let call = 0;
+
+  const match = new Match("great", () => {
+    ++call;
+    if (call === 3) {
+      done();
+    }
+  });
+  match.write("gre");
+  match.write("al this is great this!");
+});
+
+test("lookbehind append", (t, done) => {
+  let call = 0;
+
+  const match = new Match("thisisalongpattern", () => {
+    ++call;
+    if (call === 1) {
+      done();
+    }
+  });
+  match.write("thisisalong");
+  match.write("longpatlig");
+});
+
+test("lookbehind matchPattern pass", (t, done) => {
+  let call = 0;
+
+  const match = new Match("thisisalongpattern", () => {
+    ++call;
+    if (call === 1) {
+      done();
+    }
   });
 
-  search.write("This is a test");
-
-  assert.deepEqual(matches, [10]);
+  match.write("thisisalong");
+  match.write("pattern");
 });
 
-test("single write with a match (pattern length is 1)", () => {
-  const matches = [];
-  const search = new StreamingSearch("t", (index) => {
-    matches.push(index);
+test("lookbehind matchPattern fail", (t, done) => {
+  let call = 0;
+
+  const match = new Match("great", (isMatch) => {
+    if (!isMatch) {
+      ++call;
+      if (call === 2) {
+        done();
+      }
+    }
   });
 
-  search.write("test and tttt");
-
-  assert.deepEqual(matches, [0, 3, 9, 10, 11, 12]);
+  match.write("gre");
+  match.write("lt");
 });
 
-test("single write with a match (pattern length is 256)", () => {
-  const matches = [];
-  const search = new StreamingSearch("t".repeat(256), (index) => {
-    matches.push(index);
-  });
-
-  search.write(`test and ${"t".repeat(256)}`);
-
-  assert.deepEqual(matches, [9]);
-});
-
-test("multiple writes with matches", () => {
-  const matches = [];
-  const search = new StreamingSearch("pattern", (index) => {
-    matches.push(index);
-  });
-
-  search.write("This is a ");
-  search.write("pattern and another patt");
-  search.write("ern");
-
-  assert.deepEqual(matches, [10, 30]);
-});
-
-test("pattern spanning multiple chunks", () => {
-  const matches = [];
-  const search = new StreamingSearch("split", (index) => {
-    matches.push(index);
-  });
-
-  search.write("This is a sp");
-  search.write("lit pattern");
-
-  assert.deepEqual(matches, [10]);
-});
-
-test("multiple matches in a single chunk", () => {
-  const matches = [];
-  const search = new StreamingSearch("aa", (index) => {
-    matches.push(index);
-  });
-
-  search.write("aabaabbaa");
-
-  assert.deepEqual(matches, [0, 3, 7]);
-});
-
-test("no matches", () => {
-  const matches = [];
-  const search = new StreamingSearch("xyz", (index) => {
-    matches.push(index);
-  });
-
-  search.write("This is a test without any matches");
-
-  assert.deepEqual(matches, []);
-});
-
-test("no matches /2", () => {
-  const matches = [];
-  const search = new StreamingSearch("xyzxyz", (index) => {
-    matches.push(index);
-  });
-
-  search.write("test");
-
-  assert.deepEqual(matches, []);
-});
-
-test("match at the end of stream", () => {
-  const matches = [];
-  const search = new StreamingSearch("end", (index) => {
-    matches.push(index);
-  });
-
-  search.write("This is the ");
-  search.write("end");
-
-  assert.deepEqual(matches, [12]);
-});
-
-test("overlapping patterns", () => {
-  const matches = [];
-  const search = new StreamingSearch("aa", (index) => {
-    matches.push(index);
-  });
-
-  search.write("aaa");
-
-  assert.deepEqual(matches, [0]);
-});
-
-test("large input stream", () => {
-  const matches = [];
-  const search = new StreamingSearch("needle", (index) => {
-    matches.push(index);
-  });
-
-  const largeHaystack = `${"hay".repeat(1000000)}needle${"hay".repeat(1000000)}`;
-
-  for (let i = 0; i < largeHaystack.length; i += 1024) {
-    search.write(largeHaystack.slice(i, i + 1024));
-  }
-
-  assert.deepEqual(matches, [3000000]);
-});
-
-test("empty writes", () => {
-  const matches = [];
-  const search = new StreamingSearch("test", (index) => {
-    matches.push(index);
-  });
-
-  search.write("");
-  search.write("test");
-  search.write("");
-
-  assert.deepEqual(matches, [0]);
-});
-
-test("short writes", () => {
-  const matches = [];
-  const search = new StreamingSearch("test", (index) => {
-    matches.push(index);
-  });
-
-  search.write("s");
-
-  assert.deepEqual(matches, []);
-  assert.equal(search.searchStartPosition, 0);
-
-  search.write("sss");
-  assert.equal(search.searchStartPosition, 1);
-});
-
-test("short writes /2", () => {
-  const matches = [];
-  const search = new StreamingSearch("test", (index) => {
-    matches.push(index);
-  });
-
-  search.write("tes");
-
-  assert.deepEqual(matches, []);
-  assert.equal(search.searchStartPosition, 0);
-
-  search.write("t");
-  assert.equal(search.searchStartPosition, 4);
-
-  search.write("t");
-  assert.equal(search.searchStartPosition, 4);
-  assert.equal(search.index, 0);
-  assert.equal(search.count, 1);
-
-  search.write("ttt");
-  assert.equal(search.searchStartPosition, 5);
-  assert.equal(search.index, 0);
-  assert.equal(search.count, 1);
-});
-
-test("short writes /3", () => {
-  const matches = [];
-  const search = new StreamingSearch("test", (index) => {
-    matches.push(index);
-  });
-
-  search.write("testy");
-  assert.equal(search.searchStartPosition, 4);
-  assert.equal(search.index, 0);
-  assert.equal(search.count, 1);
-  assert.equal(search.lookbehindSize, 1);
-});
-
-test("short writes /4", () => {
-  const matches = [];
-  const search = new StreamingSearch(
-    "testtesttesttesttesttesttesttesttest",
-    (index) => {
-      matches.push(index);
+test("lookbehind bufferCompare with null", (t, done) => {
+  const match = new Match(
+    "great",
+    (isMatch, start, end, lookbehind, buffer) => {
+      if (isMatch === true) {
+        assert.strictEqual(start, 0);
+        assert.strictEqual(end, 0);
+        assert.strictEqual(lookbehind, null);
+        assert.strictEqual(buffer, null);
+        done();
+      }
     },
   );
 
-  search.write("testtesttesttesttesttesttesttesttestwoahman");
-  assert.equal(search.searchStartPosition, 36);
-  assert.equal(search.lookbehindSize, 7);
-  assert.equal(search.count, 1);
-  assert.deepEqual(matches, [0]);
+  match.write("great");
 });
 
-test("short writes /5", () => {
-  const matches = [];
-  const search = new StreamingSearch("testt", (index) => {
-    matches.push(index);
-  });
+test("lookbehind test", (t, done) => {
+  let count = 0;
 
-  search.write("test");
-  search.write("ttt");
-  assert.equal(search.searchStartPosition, 5);
-  assert.equal(search.lookbehindSize, 2);
-  assert.equal(search.count, 1);
-  assert.deepEqual(matches, [0]);
-});
+  const match = new Match(
+    "greatTest",
+    (isMatch, start, end, lookbehind, buffer) => {
+      ++count;
 
-test("Buffer writes", () => {
-  const matches = [];
-  const search = new StreamingSearch("test", (index) => {
-    matches.push(index);
-  });
+      if (count === 1) {
+        assert.strictEqual(isMatch, false);
+        assert.strictEqual(start, 0);
+        assert.strictEqual(end, 7);
+        assert.strictEqual(buffer, null);
+      }
 
-  assert.equal(search.pattern, "test");
+      if (count === 2) {
+        assert.strictEqual(isMatch, false);
+        assert.strictEqual(start, 0);
+        assert.strictEqual(end, 4);
+        assert.strictEqual(lookbehind, null);
+        done();
+      }
+    },
+  );
 
-  search.write("");
-  search.write("test");
-  search.write(Buffer.from("test"));
-  search.write("");
-
-  assert.deepEqual(matches, [0, 4]);
-  assert.equal(search.searchStartPosition, 8);
-  assert.equal(search.count, 2);
+  match.write("great");
+  match.write("Te");
+  match.write("failgreat");
 });
