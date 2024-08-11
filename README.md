@@ -16,7 +16,7 @@ npm i gmatch
 
 ### `Match`
 
-The `Match` class implements a Boyer-Moore-Horspool-Sunday (BMHS) pattern matching algorithm for efficient string searching.
+The `Match` class implements a streaming Boyer-Moore-Horspool-Sunday (BMHS) pattern matching algorithm.
 
 #### Constructor
 
