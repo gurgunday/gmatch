@@ -155,7 +155,7 @@ const Match = class {
       this.#callback(
         false,
         this.#bufferIndex,
-        index < buffer.length ? index : buffer.length,
+        Math.min(index, buffer.length),
         null,
         buffer,
       );
