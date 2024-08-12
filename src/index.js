@@ -70,7 +70,8 @@ const Match = class {
   }
 
   write(chunk) {
-    const buffer = chunk instanceof Uint8Array ? chunk : this.#from(`${chunk}`);
+    const buffer =
+      chunk instanceof Uint8Array ? chunk : this.#from(String(chunk));
     this.#bufferIndex = 0;
 
     while (this.#bufferIndex !== buffer.length) {
