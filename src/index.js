@@ -149,16 +149,12 @@ const Match = class {
     if (index < buffer.length) {
       this.#lookbehind.set(buffer.subarray(index));
       this.#lookbehindSize = buffer.length - index;
-    }
 
-    if (index) {
-      this.#callback(
-        false,
-        this.#bufferIndex,
-        Math.min(index, buffer.length),
-        null,
-        buffer,
-      );
+      if (index) {
+        this.#callback(false, this.#bufferIndex, index, null, buffer);
+      }
+    } else {
+      this.#callback(false, this.#bufferIndex, buffer.length, null, buffer);
     }
 
     this.#bufferIndex = buffer.length;
