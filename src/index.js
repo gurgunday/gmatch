@@ -98,7 +98,9 @@ const Match = class {
           ++this.#matches;
           this.#callback(true, 0, 0, null, null);
           this.#lookbehindSize = 0;
+
           this.#bufferIndex = index + this.#pattern.length;
+
           return this.#bufferIndex;
         }
 
@@ -115,7 +117,9 @@ const Match = class {
         this.#lookbehind.set(this.#lookbehind.subarray(bytesToCutOff));
         this.#lookbehind.set(buffer, this.#lookbehindSize - bytesToCutOff);
         this.#lookbehindSize += buffer.length;
+
         this.#bufferIndex = buffer.length;
+
         return this.#bufferIndex;
       }
 
@@ -141,6 +145,7 @@ const Match = class {
         }
 
         this.#bufferIndex = index + this.#pattern.length;
+
         return this.#bufferIndex;
       }
 
@@ -159,6 +164,7 @@ const Match = class {
     }
 
     this.#bufferIndex = buffer.length;
+
     return this.#bufferIndex;
   }
 
@@ -185,10 +191,9 @@ const Match = class {
 
   static #table(buffer) {
     const table = new Uint8Array(256).fill(buffer.length);
-    const bufferLastCharIndex = buffer.length - 1;
 
-    for (let i = 0; i !== bufferLastCharIndex; ++i) {
-      table[buffer[i]] = bufferLastCharIndex - i;
+    for (let i = 0, length = buffer.length - 1; i !== length; ++i) {
+      table[buffer[i]] = length - i;
     }
 
     return table;
