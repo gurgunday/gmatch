@@ -95,6 +95,16 @@ const Match = class {
           char === patternLastChar &&
           this.#matchPattern(buffer, index, patternLastCharIndex)
         ) {
+          if (-index < this.#lookbehindSize) {
+            this.#callback(
+              false,
+              0,
+              index + this.#lookbehindSize,
+              this.#lookbehind,
+              null,
+            );
+          }
+
           ++this.#matches;
           this.#callback(true, 0, 0, null, null);
           this.#lookbehindSize = 0;
@@ -110,7 +120,7 @@ const Match = class {
       if (index < 0) {
         const bytesToCutOff = this.#lookbehindSize + index;
 
-        if (bytesToCutOff > 0) {
+        if (bytesToCutOff) {
           this.#callback(false, 0, bytesToCutOff, this.#lookbehind, null);
         }
 

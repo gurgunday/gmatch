@@ -45,6 +45,18 @@ The constructor may throw:
 
 - `matches`: Returns the number of matches found.
 
+#### Callback Parameters
+
+- `isMatch` (boolean): Indicates whether a match was found.
+- `startIndex` (number): The start index of the data that doesn't contain the pattern.
+- `endIndex` (number): The end index (exclusive) of the data that doesn't contain the pattern.
+- `lookbehindBuffer` (Uint8Array | null): Buffer containing data from previous chunks that might be part of a match.
+- `currentBuffer` (Uint8Array | null): The current buffer being processed.
+
+Note:
+
+- The callback will contain EITHER the `lookbehindBuffer` OR the `currentBuffer`, not both at the same time.
+
 ## Usage
 
 ```js
@@ -52,11 +64,11 @@ import { Match } from "gmatch";
 
 const matcher = new Match(
   "example",
-  (isMatch, bufferIndex, matchIndex, lookbehind, currentBuffer) => {
+  (isMatch, startIndex, endIndex, lookbehindBuffer, currentBuffer) => {
     if (isMatch) {
-      console.log(`Match found at index: ${matchIndex}`);
+      console.log(`Match found at index: ${endIndex}`);
     } else {
-      console.log(`Processed ${matchIndex - bufferIndex} bytes`);
+      console.log(`Processed ${endIndex - startIndex} bytes`);
     }
   },
 );
@@ -89,6 +101,6 @@ gmatch matches: 12
 streamsearch matches: 12
 ```
 
-## Acknowledgment
+## Acknowledgments
 
 Inspired by the excellent streamsearch package, both of which implement [FooBarWidget's streaming Boyer-Moore-Horspool algorithm](https://github.com/FooBarWidget/boyer-moore-horspool/blob/10e25ed66f7184a982fbe9239a8f46ac4969643c/StreamBoyerMooreHorspool.h).

@@ -252,3 +252,31 @@ test("lookbehind test", (t, done) => {
   match.write("Te");
   match.write("failgreat");
 });
+
+test("pattern test", (t, done) => {
+  let count = 0;
+
+  const match = new Match("Hello, World!", (isMatch, start, end, l, b) => {
+    ++count;
+
+    if (count === 1) {
+      assert.strictEqual(isMatch, false);
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 1);
+      assert.strictEqual(String.fromCharCode(l[0]), "s");
+      assert.strictEqual(b, null);
+    }
+
+    if (count === 2) {
+      assert.strictEqual(isMatch, true);
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 0);
+      assert.strictEqual(l, null);
+      assert.strictEqual(b, null);
+      done();
+    }
+  });
+
+  match.write("sHello, ");
+  match.write("World!");
+});
