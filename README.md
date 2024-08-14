@@ -12,6 +12,12 @@ Works in the browser. No runtime dependencies. Constant memory usage. [Faster th
 npm i gmatch
 ```
 
+Or import directly from a CDN:
+
+```js
+import { Match } from "https://cdn.jsdelivr.net/npm/gmatch/+esm";
+```
+
 ## API
 
 ### `Match`
