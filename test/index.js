@@ -280,3 +280,24 @@ test("pattern test", (t, done) => {
   match.write("sHello, ");
   match.write("World!");
 });
+
+test("pattern test /2", (t, done) => {
+  let buffer = Buffer.from([]);
+
+  const m = new Match("Hello, World!", (isMatch, start, end, l, b) => {
+    if (!isMatch) {
+      buffer = Buffer.concat([buffer, (l ?? b).subarray(start, end)]);
+    }
+  });
+
+  m.write('"Hello, ');
+  m.write('World!"');
+  m.write("...");
+  m.write("...");
+  m.write("...");
+  m.write("Hello, World!");
+  m.write("Hello, Gurgun!");
+
+  assert.deepEqual(buffer.toString("utf8"), `"".........Hello, Gurgun`);
+  done();
+});

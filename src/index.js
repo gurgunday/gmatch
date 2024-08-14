@@ -166,7 +166,7 @@ const Match = class {
       this.#lookbehind.set(buffer.subarray(index));
       this.#lookbehindSize = buffer.length - index;
 
-      if (index) {
+      if (index !== this.#bufferIndex) {
         this.#callback(false, this.#bufferIndex, index, null, buffer);
       }
     } else {
