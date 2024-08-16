@@ -8,9 +8,9 @@ const bufferFrom = (string) => {
   return buffer;
 };
 
-const bufferCompare = (buffer1, index1, buffer2, index2, length) => {
+const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
   for (let i = 0; i !== length; ++i) {
-    if (buffer1[index1 + i] !== buffer2[index2 + i]) {
+    if (buffer1[offset1 + i] !== buffer2[offset2 + i]) {
       return false;
     }
   }
@@ -20,7 +20,6 @@ const bufferCompare = (buffer1, index1, buffer2, index2, length) => {
 
 const Match = class {
   #matches = 0;
-  #bufferIndex = 0;
   #lookbehindSize = 0;
   #lookbehind;
   #skip;
@@ -57,7 +56,6 @@ const Match = class {
 
   reset() {
     this.#lookbehindSize = 0;
-    this.#bufferIndex = 0;
     this.#matches = 0;
   }
 
@@ -72,124 +70,117 @@ const Match = class {
   write(chunk) {
     const buffer =
       chunk instanceof Uint8Array ? chunk : this.#from(String(chunk));
-    this.#bufferIndex = 0;
+    let offset = 0;
 
-    while (this.#bufferIndex !== buffer.length) {
-      this.#bufferIndex = this.#search(buffer);
+    while (offset !== buffer.length) {
+      offset = this.#search(buffer, offset);
     }
-
-    return this.#bufferIndex;
   }
 
-  #search(buffer) {
+  #search(buffer, offset) {
     const patternLastCharIndex = this.#pattern.length - 1;
     const patternLastChar = this.#pattern[patternLastCharIndex];
     const end = buffer.length - this.#pattern.length;
-    let index = -this.#lookbehindSize;
+    let position = -this.#lookbehindSize;
 
-    if (index < 0) {
-      while (index < 0 && index <= end) {
-        const char = buffer[index + patternLastCharIndex];
+    if (position < 0) {
+      while (position < 0 && position <= end) {
+        const char = buffer[position + patternLastCharIndex];
 
         if (
           char === patternLastChar &&
-          this.#matchPattern(buffer, index, patternLastCharIndex)
+          this.#matchPattern(buffer, position, patternLastCharIndex)
         ) {
-          if (-index < this.#lookbehindSize) {
+          ++this.#matches;
+
+          if (-position === this.#lookbehindSize) {
+            this.#callback(true, 0, 0, null, null);
+          } else {
             this.#callback(
-              false,
+              true,
               0,
-              index + this.#lookbehindSize,
+              position + this.#lookbehindSize,
               this.#lookbehind,
               null,
             );
           }
 
-          ++this.#matches;
-          this.#callback(true, 0, 0, null, null);
           this.#lookbehindSize = 0;
 
-          this.#bufferIndex = index + this.#pattern.length;
-
-          return this.#bufferIndex;
+          return position + this.#pattern.length;
         }
 
-        index += this.#skip[char];
+        position += this.#skip[char];
       }
 
-      if (index < 0) {
-        const bytesToCutOff = this.#lookbehindSize + index;
+      if (position < 0) {
+        const bytesToCutOff = position + this.#lookbehindSize;
 
         if (bytesToCutOff) {
           this.#callback(false, 0, bytesToCutOff, this.#lookbehind, null);
+          this.#lookbehindSize -= bytesToCutOff;
+          this.#lookbehind.set(
+            this.#lookbehind.subarray(bytesToCutOff, this.#lookbehindSize),
+          );
         }
 
-        this.#lookbehind.set(this.#lookbehind.subarray(bytesToCutOff));
-        this.#lookbehind.set(buffer, this.#lookbehindSize - bytesToCutOff);
+        this.#lookbehind.set(buffer, this.#lookbehindSize);
         this.#lookbehindSize += buffer.length;
 
-        this.#bufferIndex = buffer.length;
-
-        return this.#bufferIndex;
+        return buffer.length;
       }
 
       this.#callback(false, 0, this.#lookbehindSize, this.#lookbehind, null);
       this.#lookbehindSize = 0;
     }
 
-    index += this.#bufferIndex;
+    position += offset;
 
-    while (index <= end) {
-      const char = buffer[index + patternLastCharIndex];
+    while (position <= end) {
+      const char = buffer[position + patternLastCharIndex];
 
       if (
         char === patternLastChar &&
-        bufferCompare(this.#pattern, 0, buffer, index, patternLastCharIndex)
+        bufferCompare(this.#pattern, 0, buffer, position, patternLastCharIndex)
       ) {
         ++this.#matches;
 
-        if (index) {
-          this.#callback(true, this.#bufferIndex, index, null, buffer);
-        } else {
+        if (!position) {
           this.#callback(true, 0, 0, null, null);
+        } else {
+          this.#callback(true, offset, position, null, buffer);
         }
 
-        this.#bufferIndex = index + this.#pattern.length;
-
-        return this.#bufferIndex;
+        return position + this.#pattern.length;
       }
 
-      index += this.#skip[char];
+      position += this.#skip[char];
     }
 
-    if (index < buffer.length) {
-      this.#lookbehind.set(buffer.subarray(index));
-      this.#lookbehindSize = buffer.length - index;
-
-      if (index !== this.#bufferIndex) {
-        this.#callback(false, this.#bufferIndex, index, null, buffer);
-      }
-    } else {
-      this.#callback(false, this.#bufferIndex, buffer.length, null, buffer);
+    if (position !== offset) {
+      this.#callback(false, offset, position, null, buffer);
     }
 
-    this.#bufferIndex = buffer.length;
+    if (position !== buffer.length) {
+      this.#lookbehind.set(buffer.subarray(position));
+      this.#lookbehindSize = buffer.length - position;
+    }
 
-    return this.#bufferIndex;
+    return buffer.length;
   }
 
-  #matchPattern(buffer, index, length) {
+  #matchPattern(buffer, position, length) {
     for (let i = 0; i !== length; ++i) {
       const char =
-        index < 0
-          ? this.#lookbehind[this.#lookbehindSize + index]
-          : buffer[index];
+        position < 0
+          ? this.#lookbehind[position + this.#lookbehindSize]
+          : buffer[position];
 
       if (char !== this.#pattern[i]) {
         return false;
       }
 
-      ++index;
+      ++position;
     }
 
     return true;
@@ -201,8 +192,9 @@ const Match = class {
 
   static #table(buffer) {
     const table = new Uint8Array(256).fill(buffer.length);
+    const length = buffer.length - 1;
 
-    for (let i = 0, length = buffer.length - 1; i !== length; ++i) {
+    for (let i = 0; i !== length; ++i) {
       table[buffer[i]] = length - i;
     }
 

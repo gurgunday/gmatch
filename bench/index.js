@@ -5,7 +5,7 @@ import StreamSearch from "streamsearch";
 import { Bench } from "tinybench";
 import { Buffer } from "node:buffer";
 
-const bench = new Bench({ time: 1000 });
+const bench = new Bench({ time: 5000 });
 const pattern = "exampleexampleexampleexampleexampleexample";
 const longText =
   `This is a long text with multiple occurrences of the word example. ` +

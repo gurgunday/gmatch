@@ -59,9 +59,9 @@ The constructor may throw:
 - `lookbehindBuffer` (Uint8Array | null): Buffer containing data from previous chunks that might be part of a match.
 - `currentBuffer` (Uint8Array | null): The current buffer being processed.
 
-Note:
+**Note:**
 
-- The callback will contain EITHER the `lookbehindBuffer` OR the `currentBuffer`, not both at the same time.
+The callback will contain **either** the `lookbehindBuffer` or the `currentBuffer`, not both at the same time.
 
 ## Usage
 

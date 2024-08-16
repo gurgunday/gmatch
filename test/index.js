@@ -166,14 +166,30 @@ test("lookbehind match", (t, done) => {
 test("lookbehind append", (t, done) => {
   let call = 0;
 
-  const match = new Match("thisisalongpattern", () => {
+  const match = new Match("thisisalongpattern", (a) => {
     ++call;
     if (call === 1) {
+      assert.strictEqual(a, false);
+    }
+
+    if (call === 2) {
+      assert.strictEqual(a, false);
+    }
+
+    if (call === 3) {
+      assert.strictEqual(a, true);
+    }
+
+    if (call === 3) {
+      assert.strictEqual(a, true);
       done();
     }
   });
+
   match.write("thisisalong");
-  match.write("longpatlig");
+  match.write("patterthis");
+  match.write("isalongpatternt");
+  match.write("hisisalongpattern");
 });
 
 test("lookbehind matchPattern pass", (t, done) => {
@@ -223,7 +239,20 @@ test("lookbehind bufferCompare with null", (t, done) => {
   match.write("great");
 });
 
-test("lookbehind test", (t, done) => {
+test("lookbehind append", (t, done) => {
+  let call = 0;
+
+  const match = new Match("thisisalongpattern", () => {
+    ++call;
+    if (call === 1) {
+      done();
+    }
+  });
+  match.write("thisisalong");
+  match.write("patterl");
+});
+
+test("lookbehind test /2", (t, done) => {
   let count = 0;
 
   const match = new Match(
@@ -260,18 +289,10 @@ test("pattern test", (t, done) => {
     ++count;
 
     if (count === 1) {
-      assert.strictEqual(isMatch, false);
+      assert.strictEqual(isMatch, true);
       assert.strictEqual(start, 0);
       assert.strictEqual(end, 1);
       assert.strictEqual(String.fromCharCode(l[0]), "s");
-      assert.strictEqual(b, null);
-    }
-
-    if (count === 2) {
-      assert.strictEqual(isMatch, true);
-      assert.strictEqual(start, 0);
-      assert.strictEqual(end, 0);
-      assert.strictEqual(l, null);
       assert.strictEqual(b, null);
       done();
     }
@@ -285,7 +306,7 @@ test("pattern test /2", (t, done) => {
   let buffer = Buffer.from([]);
 
   const m = new Match("Hello, World!", (isMatch, start, end, l, b) => {
-    if (!isMatch) {
+    if (l ?? b) {
       buffer = Buffer.concat([buffer, (l ?? b).subarray(start, end)]);
     }
   });
@@ -299,5 +320,35 @@ test("pattern test /2", (t, done) => {
   m.write("Hello, Gurgun!");
 
   assert.deepEqual(buffer.toString("utf8"), `"".........Hello, Gurgun`);
+  done();
+});
+
+test("pattern test /3", (t, done) => {
+  let buffer = Buffer.from([]);
+
+  const m = new Match("Hello, World!", (isMatch, start, end, l, b) => {
+    if (l ?? b) {
+      buffer = Buffer.concat([buffer, (l ?? b).subarray(start, end)]);
+    }
+  });
+
+  m.write("Hello");
+  m.write(", World.Hello, World.asd");
+
+  assert.deepEqual(buffer.toString("utf8"), `Hello, World.Hello, World.`);
+  done();
+});
+
+test("pattern test /4", (t, done) => {
+  let c = 0;
+
+  const m = new Match("Hello, World!", () => {
+    c++;
+  });
+
+  m.write("Hello");
+  m.write(", World!");
+
+  assert.strictEqual(c, 1);
   done();
 });
