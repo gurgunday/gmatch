@@ -18,7 +18,7 @@ const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
   return true;
 };
 
-const Match = class {
+export const Match = class {
   #matches = 0;
   #lookbehindSize = 0;
   #lookbehind;
@@ -28,9 +28,9 @@ const Match = class {
   #from;
 
   /**
-   * @param {string} pattern - The pattern to search for.
-   * @param {Function} callback - The function to be called when there's a match or when a chunk of data is processed.
-   * @param {Function} from - Native or custom `Buffer.from` implementation for runtimes like Node.js.
+   * @param {string} pattern The pattern to search for.
+   * @param {Function} callback The function to be called when there's a match or when a chunk of data is processed.
+   * @param {Function} from The native or custom `Buffer.from` implementation for runtimes like Node.js.
    * @throws {TypeError}
    * @throws {RangeError}
    */
@@ -79,7 +79,6 @@ const Match = class {
 
   #search(buffer, offset) {
     const patternLastCharIndex = this.#pattern.length - 1;
-    const patternLastChar = this.#pattern[patternLastCharIndex];
     const end = buffer.length - this.#pattern.length;
     let position = -this.#lookbehindSize;
 
@@ -88,8 +87,8 @@ const Match = class {
         const char = buffer[position + patternLastCharIndex];
 
         if (
-          char === patternLastChar &&
-          this.#matchPattern(buffer, position, patternLastCharIndex)
+          char === this.#pattern[patternLastCharIndex] &&
+          this.#patternCompare(buffer, position, patternLastCharIndex)
         ) {
           ++this.#matches;
 
@@ -140,7 +139,7 @@ const Match = class {
       const char = buffer[position + patternLastCharIndex];
 
       if (
-        char === patternLastChar &&
+        char === this.#pattern[patternLastCharIndex] &&
         bufferCompare(this.#pattern, 0, buffer, position, patternLastCharIndex)
       ) {
         ++this.#matches;
@@ -169,7 +168,7 @@ const Match = class {
     return buffer.length;
   }
 
-  #matchPattern(buffer, position, length) {
+  #patternCompare(buffer, position, length) {
     for (let i = 0; i !== length; ++i) {
       const char =
         position < 0
@@ -201,5 +200,3 @@ const Match = class {
     return table;
   }
 };
-
-export { Match };

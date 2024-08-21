@@ -34,7 +34,7 @@ new Match(pattern, callback, Buffer.from);
 
 - `pattern` (string): The pattern to search for. Must be between 1 and 256 characters long.
 - `callback` (function): The function to be called when there's a match or when a chunk of data is processed.
-- `from` (function, optional): Native or custom `Buffer.from` implementation for runtimes like Node.js. Defaults to an internal, browser-compatible function.
+- `from` (function, optional): The native or custom `Buffer.from` implementation for runtimes like Node.js. Defaults to an internal, browser-compatible function.
 
 The constructor may throw:
 
