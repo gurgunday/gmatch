@@ -8,6 +8,12 @@ test("Match constructor should create a Match instance with valid input", () => 
   assert(match instanceof Match);
 });
 
+test("Match constructor should throw TypeError for non-function from", () => {
+  assert.throws(() => {
+    return new Match("test", () => {}, "not a function");
+  }, TypeError);
+});
+
 test("Match constructor should throw TypeError for non-function callback", () => {
   assert.throws(() => {
     return new Match("test", "not a function");
@@ -39,6 +45,18 @@ test("reset method should reset internal state", () => {
   assert.strictEqual(match.matches, 1);
   match.reset();
   assert.strictEqual(match.matches, 0);
+
+  match.write("tes");
+  assert.strictEqual(match.lookbehindSize, 3);
+
+  match.write("ttest");
+  assert.strictEqual(match.lookbehindSize, 0);
+
+  match.write("tes");
+  assert.strictEqual(match.lookbehindSize, 3);
+
+  match.reset();
+  assert.strictEqual(match.lookbehindSize, 0);
 });
 
 test("destroy method should call callback with remaining data", (t, done) => {
@@ -348,6 +366,32 @@ test("pattern test /4", (t, done) => {
 
   m.write("Hello");
   m.write(", World!");
+
+  assert.strictEqual(c, 1);
+  done();
+});
+
+test("pattern test /5", (t, done) => {
+  let c = 0;
+
+  const m = new Match("Hello, World!", () => {
+    c++;
+  });
+
+  m.write(new ArrayBuffer("Hello, World!".length));
+
+  assert.strictEqual(c, 1);
+  done();
+});
+
+test("pattern test /6", (t, done) => {
+  let c = 0;
+
+  const m = new Match("Hello, World!", () => {
+    c++;
+  });
+
+  m.write(new ArrayBuffer("Hello, World!".length));
 
   assert.strictEqual(c, 1);
   done();

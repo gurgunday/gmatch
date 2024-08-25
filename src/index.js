@@ -1,11 +1,7 @@
+const textEncoder = new TextEncoder();
+
 const bufferFrom = (string) => {
-  const buffer = new Uint8Array(string.length);
-
-  for (let i = 0; i !== string.length; ++i) {
-    buffer[i] = string.charCodeAt(i);
-  }
-
-  return buffer;
+  return textEncoder.encode(string);
 };
 
 const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
@@ -35,6 +31,10 @@ export const Match = class {
    * @throws {RangeError}
    */
   constructor(pattern, callback, from = bufferFrom) {
+    if (typeof from !== "function") {
+      throw new TypeError("From must be a Function");
+    }
+
     if (typeof callback !== "function") {
       throw new TypeError("Callback must be a Function");
     }
@@ -54,9 +54,22 @@ export const Match = class {
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
-  reset() {
-    this.#lookbehindSize = 0;
-    this.#matches = 0;
+  /**
+   * Feeds a chunk of data, searching for matches.
+   * @param {Uint8Array|ArrayBuffer|string} chunk The data to feed.
+   */
+  write(chunk) {
+    const buffer =
+      chunk instanceof Uint8Array
+        ? chunk
+        : chunk instanceof ArrayBuffer
+          ? new Uint8Array(chunk)
+          : this.#from(String(chunk));
+    let offset = 0;
+
+    while (offset !== buffer.length) {
+      offset = this.#search(buffer, offset);
+    }
   }
 
   destroy() {
@@ -67,14 +80,9 @@ export const Match = class {
     this.reset();
   }
 
-  write(chunk) {
-    const buffer =
-      chunk instanceof Uint8Array ? chunk : this.#from(String(chunk));
-    let offset = 0;
-
-    while (offset !== buffer.length) {
-      offset = this.#search(buffer, offset);
-    }
+  reset() {
+    this.#matches = 0;
+    this.#lookbehindSize = 0;
   }
 
   #search(buffer, offset) {
@@ -189,12 +197,16 @@ export const Match = class {
     return this.#matches;
   }
 
-  static #table(buffer) {
-    const table = new Uint8Array(256).fill(buffer.length);
-    const length = buffer.length - 1;
+  get lookbehindSize() {
+    return this.#lookbehindSize;
+  }
+
+  static #table(pattern) {
+    const table = new Uint8Array(256).fill(pattern.length);
+    const length = pattern.length - 1;
 
     for (let i = 0; i !== length; ++i) {
-      table[buffer[i]] = length - i;
+      table[pattern[i]] = length - i;
     }
 
     return table;

@@ -43,13 +43,14 @@ The constructor may throw:
 
 #### Methods
 
-- `reset()`: Resets the internal state of the matcher.
-- `destroy()`: Cleans up and calls the callback with any remaining data.
-- `write(chunk)`: Processes a chunk of data, searching for matches.
+- `write(chunk)`: Feeds a chunk of data, searching for the pattern.
+- `destroy()`: Calls the callback with any remaining lookbehind data and resets the internal state.
+- `reset()`: Resets the internal state.
 
 #### Properties
 
-- `matches`: Returns the number of matches found.
+- `matches` (number): Returns the number of matches found.
+- `lookbehindSize` (number): Returns the lookbehind size.
 
 #### Callback Parameters
 
@@ -100,9 +101,10 @@ Latest results:
 ┌─────────┬────────────────┬───────────┬────────────────────┬──────────┬─────────┐
 │ (index) │ Task Name      │ ops/sec   │ Average Time (ns)  │ Margin   │ Samples │
 ├─────────┼────────────────┼───────────┼────────────────────┼──────────┼─────────┤
-│ 0       │ 'gmatch'       │ '287,789' │ 3474.757510684889  │ '±0.33%' │ 719475  │
-│ 1       │ 'streamsearch' │ '280,600' │ 3563.7901000848046 │ '±0.26%' │ 701501  │
+│ 0       │ 'gmatch'       │ '327,280' │ 3055.4854687296574 │ '±0.15%' │ 1636402 │
+│ 1       │ 'streamsearch' │ '289,082' │ 3459.2213706394214 │ '±0.15%' │ 1445413 │
 └─────────┴────────────────┴───────────┴────────────────────┴──────────┴─────────┘
+
 gmatch matches: 12
 streamsearch matches: 12
 ```
