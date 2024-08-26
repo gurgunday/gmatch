@@ -54,22 +54,12 @@ export const Match = class {
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
   }
 
-  /**
-   * Feeds a chunk of data, searching for matches.
-   * @param {Uint8Array|ArrayBuffer|string} chunk The data to feed.
-   */
-  write(chunk) {
-    const buffer =
-      chunk instanceof Uint8Array
-        ? chunk
-        : chunk instanceof ArrayBuffer
-          ? new Uint8Array(chunk)
-          : this.#from(String(chunk));
-    let offset = 0;
+  get matches() {
+    return this.#matches;
+  }
 
-    while (offset !== buffer.length) {
-      offset = this.#search(buffer, offset);
-    }
+  get lookbehindSize() {
+    return this.#lookbehindSize;
   }
 
   destroy() {
@@ -83,6 +73,23 @@ export const Match = class {
   reset() {
     this.#matches = 0;
     this.#lookbehindSize = 0;
+  }
+
+  /**
+   * @param {Uint8Array|ArrayBuffer|string} chunk The data to be fed.
+   */
+  write(chunk) {
+    const buffer =
+      chunk instanceof Uint8Array
+        ? chunk
+        : chunk instanceof ArrayBuffer
+          ? new Uint8Array(chunk)
+          : this.#from(String(chunk));
+    let offset = 0;
+
+    while (offset !== buffer.length) {
+      offset = this.#search(buffer, offset);
+    }
   }
 
   #search(buffer, offset) {
@@ -193,19 +200,10 @@ export const Match = class {
     return true;
   }
 
-  get matches() {
-    return this.#matches;
-  }
-
-  get lookbehindSize() {
-    return this.#lookbehindSize;
-  }
-
   static #table(pattern) {
     const table = new Uint8Array(256).fill(pattern.length);
-    const length = pattern.length - 1;
 
-    for (let i = 0; i !== length; ++i) {
+    for (let i = 0, length = pattern.length - 1; i !== length; ++i) {
       table[pattern[i]] = length - i;
     }
 

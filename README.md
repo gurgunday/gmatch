@@ -41,16 +41,16 @@ The constructor may throw:
 - `TypeError`: If the callback is not a function or if the pattern is not a string.
 - `RangeError`: If the pattern length is not between 1 and 256 characters.
 
-#### Methods
-
-- `write(chunk)`: Feeds a chunk of data, searching for the pattern.
-- `destroy()`: Calls the callback with any remaining lookbehind data and resets the internal state.
-- `reset()`: Resets the internal state.
-
 #### Properties
 
 - `matches` (number): Returns the number of matches found.
-- `lookbehindSize` (number): Returns the lookbehind size.
+- `lookbehindSize` (number): Returns the size of the fed data that hasn't yet been processed.
+
+#### Methods
+
+- `destroy()`: Calls the callback with any remaining lookbehind data and calls `reset()`.
+- `reset()`: Resets the internal state.
+- `write(chunk)`: Feeds a chunk of data.
 
 #### Callback Parameters
 
