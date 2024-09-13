@@ -1,7 +1,7 @@
-const textEncoder = new TextEncoder();
+const bufferTextEncoder = new TextEncoder();
 
 const bufferFrom = (string) => {
-  return textEncoder.encode(string);
+  return bufferTextEncoder.encode(string);
 };
 
 const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
@@ -15,15 +15,16 @@ const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
 };
 
 export const Match = class {
-  #matches = 0;
-  #lookbehindSize = 0;
-  #lookbehind;
-  #skip;
-  #pattern;
-  #callback;
   #from;
+  #callback;
+  #pattern;
+  #skip;
+  #lookbehind;
+  #lookbehindSize;
+  #matches;
 
   /**
+   * The `Match` class implements a streaming Boyer-Moore-Horspool-Sunday (BMHS) pattern matching algorithm.
    * @param {string} pattern The pattern to search for.
    * @param {Function} callback The function to be called when there's a match or when a chunk of data is processed.
    * @param {Function} from The native or custom `Buffer.from` implementation for runtimes like Node.js.
@@ -52,14 +53,16 @@ export const Match = class {
     this.#pattern = this.#from(pattern);
     this.#skip = Match.#table(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
-  }
-
-  get matches() {
-    return this.#matches;
+    this.#lookbehindSize = 0;
+    this.#matches = 0;
   }
 
   get lookbehindSize() {
     return this.#lookbehindSize;
+  }
+
+  get matches() {
+    return this.#matches;
   }
 
   destroy() {
@@ -71,11 +74,12 @@ export const Match = class {
   }
 
   reset() {
-    this.#matches = 0;
     this.#lookbehindSize = 0;
+    this.#matches = 0;
   }
 
   /**
+   * Feeds a chunk of data.
    * @param {Uint8Array|ArrayBuffer|string} chunk The data to be fed.
    */
   write(chunk) {
