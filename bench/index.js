@@ -58,7 +58,7 @@ bench
   await bench.warmup();
   await bench.run();
 
-  console.table(bench.table());
-  console.warn("gmatch matches:", gmatchMatches);
-  console.warn("streamsearch matches:", streamsearchMatches);
+  globalThis.console.table(bench.table());
+  globalThis.console.warn("gmatch matches:", gmatchMatches);
+  globalThis.console.warn("streamsearch matches:", streamsearchMatches);
 })();

@@ -1,4 +1,4 @@
-const bufferTextEncoder = new TextEncoder();
+const bufferTextEncoder = new globalThis.TextEncoder();
 
 const bufferFrom = (string) => {
   return bufferTextEncoder.encode(string);
@@ -24,10 +24,9 @@ export const Match = class {
   #matches;
 
   /**
-   * The `Match` class implements a streaming Boyer-Moore-Horspool-Sunday (BMHS) pattern matching algorithm.
-   * @param {string} pattern The pattern to search for.
-   * @param {Function} callback The function to be called when there's a match or when a chunk of data is processed.
-   * @param {Function} from The native or custom `Buffer.from` implementation for runtimes like Node.js.
+   * @param {string} pattern pattern
+   * @param {Function} callback callback
+   * @param {Function} from from
    * @throws {TypeError}
    * @throws {RangeError}
    */
@@ -79,8 +78,7 @@ export const Match = class {
   }
 
   /**
-   * Feeds a chunk of data.
-   * @param {Uint8Array|ArrayBuffer|string} chunk The data to be fed.
+   * @param {Uint8Array|ArrayBuffer|string} chunk chunk
    */
   write(chunk) {
     const buffer =
@@ -204,7 +202,7 @@ export const Match = class {
     return true;
   }
 
-  static #table(pattern) {
+  static #table = (pattern) => {
     const table = new Uint8Array(256).fill(pattern.length);
 
     for (let i = 0, length = pattern.length - 1; i !== length; ++i) {
@@ -212,5 +210,5 @@ export const Match = class {
     }
 
     return table;
-  }
+  };
 };
