@@ -1,5 +1,4 @@
 /* eslint-disable unicorn/no-array-push-push */
-
 import { Match } from "../src/index.js";
 import StreamSearch from "streamsearch";
 import { Bench } from "tinybench";
@@ -9,10 +8,9 @@ const bench = new Bench({ time: 5000 });
 const pattern = "exampleexampleexampleexampleexampleexample";
 const longText =
   `This is a long text with multiple occurrences of the word example. ` +
-  `It repeats the word example several times to ensure we have enough ${"data for the benchmark. Here's another exampleexampleexampleexampleexampleexample.".repeat(
-    10,
+  `It repeats the word exampleexampleexampleexampleexampleexample several times to ensure we have enough ${"data for the benchmark. Here's another exampleexampleexampleexampleexampleexample.".repeat(
+    5,
   )}`;
-
 let gmatchMatches;
 let streamsearchMatches;
 
@@ -29,9 +27,16 @@ bench
       Buffer.from,
     );
 
-    search.write("exampleexampleexampleexampleexample");
-    search.write("exampleexampleexampgeexampleexampleexample");
-    search.write("exampleexampleexampgeexampleexampleexample");
+    search.write("exampleexampleexampleexample");
+    search.write("fexampleexampleexampleexampleexample");
+    search.write(
+      "exampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexample",
+    );
+    search.write("exampleexampleexampleexample");
+    search.write("fexampleexampleexampleexampleexample");
+    search.write(
+      "exampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexample",
+    );
     search.write(longText);
     search.write(pattern);
 
@@ -45,20 +50,25 @@ bench
       }
     });
 
-    search.push("exampleexampleexampleexampleexample");
-    search.push("exampleexampleexampgeexampleexampleexample");
-    search.push("exampleexampleexampgeexampleexampleexample");
+    search.push("exampleexampleexampleexample");
+    search.push("fexampleexampleexampleexampleexample");
+    search.push(
+      "exampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexample",
+    );
+    search.push("exampleexampleexampleexample");
+    search.push("fexampleexampleexampleexampleexample");
+    search.push(
+      "exampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexampleexample",
+    );
     search.push(longText);
     search.push(pattern);
 
     streamsearchMatches = matches.length;
   });
 
-(async () => {
-  await bench.warmup();
-  await bench.run();
+await bench.warmup();
+await bench.run();
 
-  globalThis.console.table(bench.table());
-  globalThis.console.warn("gmatch matches:", gmatchMatches);
-  globalThis.console.warn("streamsearch matches:", streamsearchMatches);
-})();
+globalThis.console.table(bench.table());
+globalThis.console.log("gmatch matches:", gmatchMatches);
+globalThis.console.log("streamsearch matches:", streamsearchMatches);
