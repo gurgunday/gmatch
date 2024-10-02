@@ -3,7 +3,7 @@
   "description": "Search for a pattern in a stream, as fast as JavaScriptly possible.",
   "author": "Gürgün Dayıoğlu",
   "license": "MIT",
-  "version": "3.0.3",
+  "version": "3.0.5",
   "type": "module",
   "main": "./src/index.js",
   "exports": "./src/index.js",
