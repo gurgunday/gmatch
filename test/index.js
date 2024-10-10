@@ -4,6 +4,8 @@ const { Match } = require("../src/index.js");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
+const textEncoder = new TextEncoder();
+
 test("Match constructor should create a Match instance with valid input", () => {
   const match = new Match("test", () => {});
   assert(match instanceof Match);
@@ -21,22 +23,9 @@ test("Match constructor should throw TypeError for non-function callback", () =>
   }, TypeError);
 });
 
-test("Match constructor should throw TypeError for non-string pattern", () => {
-  assert.throws(() => {
-    return new Match(123, () => {});
-  }, TypeError);
-});
-
 test("Match constructor should throw RangeError for empty pattern", () => {
   assert.throws(() => {
     return new Match("", () => {});
-  }, RangeError);
-});
-
-test("Match constructor should throw RangeError for pattern longer than 256 characters", () => {
-  const longPattern = "a".repeat(257);
-  assert.throws(() => {
-    return new Match(longPattern, () => {});
   }, RangeError);
 });
 
@@ -390,6 +379,45 @@ test("pattern test /6", (t, done) => {
   });
 
   m.write(new ArrayBuffer("Hello, World!".length));
+
+  assert.strictEqual(c, 1);
+  done();
+});
+
+test("pattern test /7", (t, done) => {
+  let c = 0;
+
+  const m = new Match(textEncoder.encode(13), () => {
+    c++;
+  });
+
+  m.write(new ArrayBuffer("2313".length));
+
+  assert.strictEqual(c, 1);
+  done();
+});
+
+test("pattern test 256 length", (t, done) => {
+  let c = 0;
+
+  const m = new Match("ab".repeat(128), () => {
+    c++;
+  });
+
+  m.write("ab".repeat(128 * 2 + 1));
+
+  assert.strictEqual(c, 2);
+  done();
+});
+
+test("pattern test 257 length", (t, done) => {
+  let c = 0;
+
+  const m = new Match("a".repeat(257), () => {
+    c++;
+  });
+
+  m.write("a".repeat(259) + "a");
 
   assert.strictEqual(c, 1);
   done();

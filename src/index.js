@@ -17,16 +17,16 @@ const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
 };
 
 const Match = class {
-  #from;
-  #callback;
   #pattern;
+  #callback;
+  #from;
   #skip;
   #lookbehind;
   #lookbehindSize;
   #matches;
 
   /**
-   * @param {string} pattern pattern
+   * @param {Uint8Array|string} pattern pattern
    * @param {Function} callback callback
    * @param {Function} from from
    * @throws {TypeError}
@@ -41,17 +41,15 @@ const Match = class {
       throw new TypeError("Callback must be a Function");
     }
 
-    if (typeof pattern !== "string") {
-      throw new TypeError("Pattern must be a string");
+    this.#pattern =
+      pattern instanceof Uint8Array ? pattern : from(String(pattern));
+
+    if (!this.#pattern.length) {
+      throw new RangeError("Pattern length must not be 0");
     }
 
-    if (!pattern.length || pattern.length >= 257) {
-      throw new RangeError("Pattern length must be between 1 and 256");
-    }
-
-    this.#from = from;
     this.#callback = callback;
-    this.#pattern = this.#from(pattern);
+    this.#from = from;
     this.#skip = Match.#table(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
     this.#lookbehindSize = 0;
@@ -80,15 +78,11 @@ const Match = class {
   }
 
   /**
-   * @param {Uint8Array|ArrayBuffer|string} chunk chunk
+   * @param {Uint8Array|string} chunk chunk
    */
   write(chunk) {
     const buffer =
-      chunk instanceof Uint8Array
-        ? chunk
-        : chunk instanceof ArrayBuffer
-          ? new Uint8Array(chunk)
-          : this.#from(String(chunk));
+      chunk instanceof Uint8Array ? chunk : this.#from(String(chunk));
     let offset = 0;
 
     while (offset !== buffer.length) {
