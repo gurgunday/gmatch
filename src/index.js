@@ -1,4 +1,6 @@
-const bufferTextEncoder = new globalThis.TextEncoder();
+"use strict";
+
+const bufferTextEncoder = new TextEncoder();
 
 const bufferFrom = (string) => {
   return bufferTextEncoder.encode(string);
@@ -14,7 +16,7 @@ const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
   return true;
 };
 
-export const Match = class {
+const Match = class {
   #from;
   #callback;
   #pattern;
@@ -66,7 +68,7 @@ export const Match = class {
 
   destroy() {
     if (this.#lookbehindSize) {
-      this.#callback(false, 0, this.#lookbehindSize, this.#lookbehind, null);
+      this.#callback(false, this.#lookbehind, 0, this.#lookbehindSize, false);
     }
 
     this.reset();
@@ -110,14 +112,14 @@ export const Match = class {
           ++this.#matches;
 
           if (-position === this.#lookbehindSize) {
-            this.#callback(true, 0, 0, null, null);
+            this.#callback(true, null, 0, 0, false);
           } else {
             this.#callback(
               true,
+              this.#lookbehind,
               0,
               position + this.#lookbehindSize,
-              this.#lookbehind,
-              null,
+              false,
             );
           }
 
@@ -133,7 +135,7 @@ export const Match = class {
         const bytesToCutOff = position + this.#lookbehindSize;
 
         if (bytesToCutOff) {
-          this.#callback(false, 0, bytesToCutOff, this.#lookbehind, null);
+          this.#callback(false, this.#lookbehind, 0, bytesToCutOff, false);
           this.#lookbehindSize -= bytesToCutOff;
           this.#lookbehind.set(
             this.#lookbehind.subarray(bytesToCutOff, this.#lookbehindSize),
@@ -146,7 +148,7 @@ export const Match = class {
         return buffer.length;
       }
 
-      this.#callback(false, 0, this.#lookbehindSize, this.#lookbehind, null);
+      this.#callback(false, this.#lookbehind, 0, this.#lookbehindSize, false);
       this.#lookbehindSize = 0;
     }
 
@@ -162,9 +164,9 @@ export const Match = class {
         ++this.#matches;
 
         if (!position) {
-          this.#callback(true, 0, 0, null, null);
+          this.#callback(true, null, 0, 0, false);
         } else {
-          this.#callback(true, offset, position, null, buffer);
+          this.#callback(true, buffer, offset, position, true);
         }
 
         return position + this.#pattern.length;
@@ -174,7 +176,7 @@ export const Match = class {
     }
 
     if (position !== offset) {
-      this.#callback(false, offset, position, null, buffer);
+      this.#callback(false, buffer, offset, position, true);
     }
 
     if (position !== buffer.length) {
@@ -212,3 +214,5 @@ export const Match = class {
     return table;
   };
 };
+
+module.exports.Match = Match;

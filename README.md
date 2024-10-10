@@ -1,6 +1,6 @@
 # gmatch ![img.shields.io/bundlephobia/minzip/gmatch](https://img.shields.io/bundlephobia/minzip/gmatch)
 
-streamin**gmatch** lets you search for a pattern in a stream, as fast as JavaScriptly possible.
+streamin**gmatch** lets you search for a pattern in a stream as fast as JavaScriptly possible.
 
 Works in the browser. No runtime dependencies. Constant memory usage. [Faster than streamsearch.](#benchmarks)
 
@@ -54,36 +54,24 @@ The constructor may throw:
 
 #### Callback Parameters
 
-- `isMatch` (boolean): Indicates whether a match was found.
-- `startIndex` (number): The start index of the data that doesn't contain the pattern.
-- `endIndex` (number): The end index (exclusive) of the data that doesn't contain the pattern.
-- `lookbehindBuffer` (Uint8Array | null): Buffer containing data from previous chunks that might be part of a match.
-- `currentBuffer` (Uint8Array | null): The current buffer being processed.
-
-**Note:**
-
-The callback will contain **either** the `lookbehindBuffer` or the `currentBuffer`, not both at the same time.
+- `isMatch` (boolean): Indicates whether a match is found.
+- `data` (Uint8Array | null): Buffer containing data that is not part of a match.
+- `start` (number): The start index of the data that doesn't contain the pattern.
+- `end` (number): The end index (exclusive) of the data that doesn't contain the pattern.
+- `isSafe` (boolean): Indicates whether it's safe to store a reference to `data` without copying it.
 
 ## Usage
 
 ```js
 import { Match } from "gmatch";
 
-const matcher = new Match(
-  "example",
-  (isMatch, startIndex, endIndex, lookbehindBuffer, currentBuffer) => {
-    if (isMatch) {
-      console.log(`Match found at index: ${endIndex}`);
-    } else {
-      console.log(`Processed ${endIndex - startIndex} bytes`);
-    }
-  },
-);
+const matcher = new Match("example", (isMatch, data, start, end, isSafe) => {
+  console.log(isMatch, data, start, end, isSafe);
+});
 
 matcher.write("Some text with an example in it");
 matcher.write(" and more exam");
 matcher.write("ple here");
-
 matcher.destroy();
 
 console.log(`Total matches: ${matcher.matches}`);

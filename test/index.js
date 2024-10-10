@@ -1,7 +1,8 @@
-import { Match } from "../src/index.js";
-import { Buffer } from "node:buffer";
-import { test } from "node:test";
-import assert from "node:assert/strict";
+"use strict";
+
+const { Match } = require("../src/index.js");
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
 
 test("Match constructor should create a Match instance with valid input", () => {
   const match = new Match("test", () => {});
@@ -60,11 +61,11 @@ test("reset method should reset internal state", () => {
 });
 
 test("destroy method should call callback with remaining data", (t, done) => {
-  const match = new Match("test", (isMatch, start, end, lookbehind) => {
+  const match = new Match("test", (isMatch, data, start, end) => {
     if (!isMatch) {
       assert.strictEqual(end, 3);
-      assert(lookbehind instanceof Uint8Array);
-      assert.deepStrictEqual(lookbehind, new Uint8Array([116, 101, 115]));
+      assert(data instanceof Uint8Array);
+      assert.deepStrictEqual(data, new Uint8Array([116, 101, 115]));
       done();
     }
   });
@@ -116,7 +117,7 @@ test("matches property should return correct number of matches", () => {
 });
 
 test("should handle pattern at the beginning of input", (t, done) => {
-  const match = new Match("test", (isMatch, start, end) => {
+  const match = new Match("test", (isMatch, data, start, end) => {
     if (isMatch) {
       assert.strictEqual(start, 0);
       assert.strictEqual(end, 0);
@@ -127,7 +128,7 @@ test("should handle pattern at the beginning of input", (t, done) => {
 });
 
 test("should handle pattern at the end of input", (t, done) => {
-  const match = new Match("test", (isMatch, start, end) => {
+  const match = new Match("test", (isMatch, data, start, end) => {
     if (isMatch) {
       assert.strictEqual(start, 0);
       assert.strictEqual(end, 7);
@@ -241,18 +242,15 @@ test("lookbehind matchPattern fail", (t, done) => {
 });
 
 test("lookbehind bufferCompare with null", (t, done) => {
-  const match = new Match(
-    "great",
-    (isMatch, start, end, lookbehind, buffer) => {
-      if (isMatch === true) {
-        assert.strictEqual(start, 0);
-        assert.strictEqual(end, 0);
-        assert.strictEqual(lookbehind, null);
-        assert.strictEqual(buffer, null);
-        done();
-      }
-    },
-  );
+  const match = new Match("great", (isMatch, data, start, end, isSafe) => {
+    if (isMatch === true) {
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 0);
+      assert.strictEqual(data, null);
+      assert.strictEqual(isSafe, false);
+      done();
+    }
+  });
 
   match.write("great");
 });
@@ -273,27 +271,24 @@ test("lookbehind append", (t, done) => {
 test("lookbehind test /2", (t, done) => {
   let count = 0;
 
-  const match = new Match(
-    "greatTest",
-    (isMatch, start, end, lookbehind, buffer) => {
-      ++count;
+  const match = new Match("greatTest", (isMatch, data, start, end, isSafe) => {
+    ++count;
 
-      if (count === 1) {
-        assert.strictEqual(isMatch, false);
-        assert.strictEqual(start, 0);
-        assert.strictEqual(end, 7);
-        assert.strictEqual(buffer, null);
-      }
+    if (count === 1) {
+      assert.strictEqual(isMatch, false);
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 7);
+      assert.strictEqual(isSafe, false);
+    }
 
-      if (count === 2) {
-        assert.strictEqual(isMatch, false);
-        assert.strictEqual(start, 0);
-        assert.strictEqual(end, 4);
-        assert.strictEqual(lookbehind, null);
-        done();
-      }
-    },
-  );
+    if (count === 2) {
+      assert.strictEqual(isMatch, false);
+      assert.strictEqual(start, 0);
+      assert.strictEqual(end, 4);
+      assert.strictEqual(isSafe, true);
+      done();
+    }
+  });
 
   match.write("great");
   match.write("Te");
@@ -303,18 +298,21 @@ test("lookbehind test /2", (t, done) => {
 test("pattern test", (t, done) => {
   let count = 0;
 
-  const match = new Match("Hello, World!", (isMatch, start, end, l, b) => {
-    ++count;
+  const match = new Match(
+    "Hello, World!",
+    (isMatch, data, start, end, isSafe) => {
+      ++count;
 
-    if (count === 1) {
-      assert.strictEqual(isMatch, true);
-      assert.strictEqual(start, 0);
-      assert.strictEqual(end, 1);
-      assert.strictEqual(String.fromCharCode(l[0]), "s");
-      assert.strictEqual(b, null);
-      done();
-    }
-  });
+      if (count === 1) {
+        assert.strictEqual(isMatch, true);
+        assert.strictEqual(start, 0);
+        assert.strictEqual(end, 1);
+        assert.strictEqual(String.fromCharCode(data[0]), "s");
+        assert.strictEqual(isSafe, false);
+        done();
+      }
+    },
+  );
 
   match.write("sHello, ");
   match.write("World!");
@@ -323,9 +321,9 @@ test("pattern test", (t, done) => {
 test("pattern test /2", (t, done) => {
   let buffer = Buffer.from([]);
 
-  const m = new Match("Hello, World!", (isMatch, start, end, l, b) => {
-    if (l ?? b) {
-      buffer = Buffer.concat([buffer, (l ?? b).subarray(start, end)]);
+  const m = new Match("Hello, World!", (isMatch, data, start, end) => {
+    if (data) {
+      buffer = Buffer.concat([buffer, data.slice(start, end)]);
     }
   });
 
@@ -344,9 +342,9 @@ test("pattern test /2", (t, done) => {
 test("pattern test /3", (t, done) => {
   let buffer = Buffer.from([]);
 
-  const m = new Match("Hello, World!", (isMatch, start, end, l, b) => {
-    if (l ?? b) {
-      buffer = Buffer.concat([buffer, (l ?? b).subarray(start, end)]);
+  const m = new Match("Hello, World!", (isMatch, data, start, end) => {
+    if (data) {
+      buffer = Buffer.concat([buffer, data.slice(start, end)]);
     }
   });
 
