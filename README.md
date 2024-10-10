@@ -32,9 +32,9 @@ new Match(pattern, callback);
 new Match(pattern, callback, Buffer.from);
 ```
 
-- `pattern` (string): The pattern to search for. Must be between 1 and 256 characters long.
-- `callback` (function): The function to be called when there's a match or when a chunk of data is processed.
-- `from` (function, optional): The native or custom `Buffer.from` implementation for runtimes like Node.js. Defaults to an internal, browser-compatible function.
+- `pattern` (Uint8Array|string): The pattern to search for. Must be between 1 and 256 characters long.
+- `callback` (Function): The function to be called when there's a match or when a chunk of data is processed.
+- `from` (Function, optional): Custom `Buffer.from` implementation for runtimes like Node.js. Defaults to an internal, browser-compatible function.
 
 The constructor may throw:
 
@@ -50,7 +50,7 @@ The constructor may throw:
 
 - `destroy()`: Calls the callback with any remaining lookbehind data and calls `reset()`.
 - `reset()`: Resets the internal state.
-- `write(chunk)`: Feeds a chunk of data.
+- `write(chunk: Uint8Array|string)`: Feeds a chunk of data.
 
 #### Callback Parameters
 
