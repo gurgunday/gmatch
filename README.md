@@ -39,7 +39,7 @@ new Match(pattern, callback, Buffer.from);
 The constructor may throw:
 
 - `TypeError`: If the callback is not a function or if the pattern is not a string.
-- `RangeError`: If the pattern length is not between 1 and 256 characters.
+- `RangeError`: If the pattern is empty.
 
 #### Properties
 
