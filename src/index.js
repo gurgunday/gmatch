@@ -16,6 +16,17 @@ const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
   return true;
 };
 
+const table = (buffer) => {
+  const table = new Uint8Array(256).fill(buffer.length);
+  const length = buffer.length - 1;
+
+  for (let i = 0; i !== length; ++i) {
+    table[buffer[i]] = length - i;
+  }
+
+  return table;
+};
+
 const Match = class {
   #pattern;
   #callback;
@@ -42,15 +53,15 @@ const Match = class {
     }
 
     this.#pattern =
-      pattern instanceof Uint8Array ? pattern : from(String(pattern));
+      pattern instanceof Uint8Array ? pattern : from(`${pattern}`);
 
-    if (!this.#pattern.length) {
+    if (this.#pattern.length === 0) {
       throw new RangeError("Pattern length must not be 0");
     }
 
     this.#callback = callback;
     this.#from = from;
-    this.#skip = Match.#table(this.#pattern);
+    this.#skip = table(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
     this.#lookbehindSize = 0;
     this.#matches = 0;
@@ -65,7 +76,7 @@ const Match = class {
   }
 
   destroy() {
-    if (this.#lookbehindSize) {
+    if (this.#lookbehindSize !== 0) {
       this.#callback(false, this.#lookbehind, 0, this.#lookbehindSize, false);
     }
 
@@ -81,8 +92,7 @@ const Match = class {
    * @param {Uint8Array|string} chunk chunk
    */
   write(chunk) {
-    const buffer =
-      chunk instanceof Uint8Array ? chunk : this.#from(String(chunk));
+    const buffer = chunk instanceof Uint8Array ? chunk : this.#from(`${chunk}`);
     let offset = 0;
 
     while (offset !== buffer.length) {
@@ -128,7 +138,7 @@ const Match = class {
       if (position < 0) {
         const bytesToCutOff = position + this.#lookbehindSize;
 
-        if (bytesToCutOff) {
+        if (bytesToCutOff !== 0) {
           this.#callback(false, this.#lookbehind, 0, bytesToCutOff, false);
           this.#lookbehindSize -= bytesToCutOff;
           this.#lookbehind.set(
@@ -157,7 +167,7 @@ const Match = class {
       ) {
         ++this.#matches;
 
-        if (!position) {
+        if (position === 0) {
           this.#callback(true, null, 0, 0, false);
         } else {
           this.#callback(true, buffer, offset, position, true);
@@ -197,16 +207,6 @@ const Match = class {
 
     return true;
   }
-
-  static #table = (pattern) => {
-    const table = new Uint8Array(256).fill(pattern.length);
-
-    for (let i = 0, length = pattern.length - 1; i !== length; ++i) {
-      table[pattern[i]] = length - i;
-    }
-
-    return table;
-  };
 };
 
 module.exports.Match = Match;
