@@ -16,7 +16,7 @@ const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
   return true;
 };
 
-const table = (buffer) => {
+const matchTable = (buffer) => {
   const table = new Uint8Array(256).fill(buffer.length);
   const length = buffer.length - 1;
 
@@ -61,7 +61,7 @@ const Match = class {
 
     this.#callback = callback;
     this.#from = from;
-    this.#skip = table(this.#pattern);
+    this.#skip = matchTable(this.#pattern);
     this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
     this.#lookbehindSize = 0;
     this.#matches = 0;
