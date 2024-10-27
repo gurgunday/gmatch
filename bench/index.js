@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/no-array-push-push */
 "use strict";
 
-const { Match } = require("../src/index.js");
+const { Match } = require("..");
 const StreamSearch = require("streamsearch");
 const { Bench } = require("tinybench");
 

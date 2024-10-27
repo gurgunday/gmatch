@@ -1,6 +1,6 @@
 "use strict";
 
-const { Match } = require("../src/index.js");
+const { Match } = require("..");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
