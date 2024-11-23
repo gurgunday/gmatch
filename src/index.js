@@ -29,6 +29,8 @@ const skipTable = (buffer) => {
 
 const Match = class {
   #pattern;
+  #patternLastCharIndex;
+  #patternLastChar;
   #callback;
   #from;
   #skip;
@@ -59,10 +61,13 @@ const Match = class {
       throw new RangeError("Pattern length must not be 0");
     }
 
+    this.#patternLastCharIndex = this.#pattern.length - 1;
+    this.#patternLastChar = this.#pattern[this.#patternLastCharIndex];
+
     this.#callback = callback;
     this.#from = from;
     this.#skip = skipTable(this.#pattern);
-    this.#lookbehind = new Uint8Array(this.#pattern.length - 1);
+    this.#lookbehind = new Uint8Array(this.#patternLastCharIndex);
     this.#lookbehindSize = 0;
     this.#matches = 0;
   }
@@ -101,17 +106,16 @@ const Match = class {
   }
 
   #search(buffer, offset) {
-    const patternLastCharIndex = this.#pattern.length - 1;
     const end = buffer.length - this.#pattern.length;
     let position = -this.#lookbehindSize;
 
     if (position < 0) {
       while (position < 0 && position <= end) {
-        const char = buffer[position + patternLastCharIndex];
+        const char = buffer[position + this.#patternLastCharIndex];
 
         if (
-          char === this.#pattern[patternLastCharIndex] &&
-          this.#patternCompare(buffer, position, patternLastCharIndex)
+          char === this.#patternLastChar &&
+          this.#patternCompare(buffer, position, this.#patternLastCharIndex)
         ) {
           ++this.#matches;
 
@@ -159,11 +163,17 @@ const Match = class {
     position += offset;
 
     while (position <= end) {
-      const char = buffer[position + patternLastCharIndex];
+      const char = buffer[position + this.#patternLastCharIndex];
 
       if (
-        char === this.#pattern[patternLastCharIndex] &&
-        bufferCompare(this.#pattern, 0, buffer, position, patternLastCharIndex)
+        char === this.#patternLastChar &&
+        bufferCompare(
+          this.#pattern,
+          0,
+          buffer,
+          position,
+          this.#patternLastCharIndex,
+        )
       ) {
         ++this.#matches;
 
