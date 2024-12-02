@@ -2,9 +2,7 @@
 
 const bufferTextEncoder = new TextEncoder();
 
-const bufferFrom = (string) => {
-  return bufferTextEncoder.encode(string);
-};
+const bufferFrom = (string) => bufferTextEncoder.encode(string);
 
 const bufferCompare = (buffer1, offset1, buffer2, offset2, length) => {
   for (let i = 0; i !== length; ++i) {

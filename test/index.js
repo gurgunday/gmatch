@@ -12,21 +12,15 @@ test("Match constructor should create a Match instance with valid input", () => 
 });
 
 test("Match constructor should throw TypeError for non-function from", () => {
-  assert.throws(() => {
-    return new Match("test", () => {}, "not a function");
-  }, TypeError);
+  assert.throws(() => new Match("test", () => {}, "not a function"), TypeError);
 });
 
 test("Match constructor should throw TypeError for non-function callback", () => {
-  assert.throws(() => {
-    return new Match("test", "not a function");
-  }, TypeError);
+  assert.throws(() => new Match("test", "not a function"), TypeError);
 });
 
 test("Match constructor should throw RangeError for empty pattern", () => {
-  assert.throws(() => {
-    return new Match("", () => {});
-  }, RangeError);
+  assert.throws(() => new Match("", () => {}), RangeError);
 });
 
 test("reset method should reset internal state", () => {
